@@ -32,13 +32,13 @@ EE_PROJECT_ID=your_ee_project_id
 
 ### 3. Run the Application
 
-**Option A: Web UI**
+**Web UI (Flask)**
 ```bash
-streamlit run main.py
+python app.py
 ```
-Then open http://localhost:8501
+Then open http://localhost:5000
 
-**Option B: Command Line**
+**Command Line**
 ```bash
 python run_agents.py --city "Bengaluru"
 ```
@@ -51,12 +51,12 @@ python run_agents.py --city "Bengaluru"
 - **🛰️ Data Scout** - Fetches satellite data from Google Earth Engine
 - **🔬 Analyst** - Analyzes NO₂ levels and categorizes air quality
 - **📄 Reporter** - Generates professional PDF reports
-- **📱 Alert Manager** - Sends instant Pushover notifications
+- **📱 Alert Manager** - Sends instant Pushover & Email notifications
 
 ### 📱 **Real-Time Notifications**
 - Instant alerts to your phone via Pushover
+- Email notifications with detailed analysis
 - Priority-based (silent → emergency siren)
-- Daily summaries for multiple cities
 
 ### 📄 **Government Reports**
 - **Regulatory Compliance Report** - CPCB & WHO standards
@@ -68,18 +68,19 @@ python run_agents.py --city "Bengaluru"
 
 ```
 agentic_air_quality/
-├── main.py                    # Streamlit web UI
+├── app.py                     # Flask web application
 ├── run_agents.py              # CLI interface
-├── test_notification.py       # Test Pushover
 ├── requirements.txt           # Dependencies
 ├── .env                       # API credentials
+├── templates/                 # HTML templates
+├── static/                    # CSS, JS, Images
 │
 └── src/
     ├── agents/
     │   ├── agents.py          # 4 AI agents
     │   └── tools.py           # Agent tools
     └── core/
-        ├── notifications.py   # Pushover service
+        ├── notifications.py   # Notification service
         └── report_generator.py # PDF generation
 ```
 
@@ -88,10 +89,11 @@ agentic_air_quality/
 ## 🎯 Usage
 
 ### Web UI
-1. Launch: `streamlit run main.py`
-2. Enter city name and date
-3. Click "🚀 START AGENT MISSION"
-4. View results and check your phone for notification
+1. Launch: `python app.py`
+2. Open http://localhost:5000
+3. Enter city name and date
+4. Click "Launch Monitoring System"
+5. View real-time progress and download reports
 
 ### Command Line
 ```bash
@@ -100,12 +102,6 @@ python run_agents.py --city "Bengaluru"
 
 # Specific date range
 python run_agents.py --city "Delhi" --start-date "2025-11-20" --end-date "2025-11-21"
-
-# Without notifications
-python run_agents.py --city "Mumbai" --no-alerts
-
-# Without reports
-python run_agents.py --city "Chennai" --no-reports
 ```
 
 ---
@@ -142,9 +138,10 @@ Children and elderly should stay indoors.
 
 - **AI Framework:** CrewAI, LangChain, OpenAI GPT-4
 - **Satellite Data:** Google Earth Engine, Sentinel-5P
-- **Notifications:** Pushover API
+- **Backend:** Flask (Python)
+- **Frontend:** HTML5, CSS3, JavaScript
+- **Notifications:** Pushover API, SMTP (Email)
 - **Reports:** ReportLab (PDF)
-- **UI:** Streamlit
 
 ---
 
@@ -160,14 +157,11 @@ Children and elderly should stay indoors.
 ## 🧪 Testing
 
 ```bash
-# Test Pushover notifications
-python test_notification.py
-
 # Test CLI
 python run_agents.py --city "Bengaluru"
 
 # Test Web UI
-streamlit run main.py
+python app.py
 ```
 
 ---

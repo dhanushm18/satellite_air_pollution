@@ -1,3 +1,0 @@
-"""
-GDG Hackathon Project Package
-""" 
