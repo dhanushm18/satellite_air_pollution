@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Government of PES - Air Pollution Regulatory System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body class="gov-theme">
+    <!-- Enhanced Government Header -->
+    <header class="gov-header-enhanced">
+        <div class="gov-top-bar-enhanced">
+            <div class="container">
+                <div class="top-bar-content">
+                    <div class="header-left">
+                        <div class="logo-wrapper">
+                            <img src="{{ url_for('static', filename='images/government_pes_logo.png') }}"
+                                alt="Government of PES" class="gov-logo-enhanced">
+                            <div class="logo-glow"></div>
+                        </div>
+                        <div class="title-section">
+                            <h1 class="main-title">
+                                <span class="title-line-1">GOVERNMENT OF PES</span>
+                                <span class="title-line-2">Air Quality Intelligence System</span>
+                            </h1>
+                            <p class="ministry-tag">
+                                <i class="fas fa-building"></i>
+                                Ministry of Environment, Forest and Climate Change
+                            </p>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <div class="date-display">
+                            <i class="fas fa-calendar-day"></i>
+                            <span id="currentDate"></span>
+                        </div>
+                        <select class="lang-select">
+                            <option>English</option>
+                            <option>हिन्दी</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="main-navigation">
+            <div class="container">
+                <ul class="nav-list">
+                    <li class="nav-item active" onclick="window.location.href='/'">
+                        <i class="fas fa-home"></i> Home
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='/dashboard'">
+                        <i class="fas fa-chart-line"></i> Dashboard
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='/reports'">
+                        <i class="fas fa-file-alt"></i> Reports
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='/alerts'">
+                        <i class="fas fa-bell"></i> Alerts
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='/settings'">
+                        <i class="fas fa-cog"></i> Settings
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='/about'">
+                        <i class="fas fa-info-circle"></i> About
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Tri-color Strip -->
+    <div class="tricolor-strip">
+        <div class="color-band orange"></div>
+        <div class="color-band white">
+            <span class="motto">ಸ್ವಚ್ಛವಾದ ಗಾಳಿ, ಸುರಕ್ಷಿತ ಭಾರತ</span>
+        </div>
+        <div class="color-band green"></div>
+    </div>
+
+    <!-- News Ticker -->
+    <div class="news-ticker-enhanced">
+        <div class="ticker-label-enhanced">
+            <i class="fas fa-bullhorn"></i>
+            <span>LIVE UPDATES</span>
+        </div>
+        <marquee behavior="scroll" direction="left" scrollamount="5" class="ticker-content-enhanced">
+            <span class="ticker-item-enhanced">
+                <i class="fas fa-star"></i> <strong>NEW:</strong> AI-Powered Real-Time Monitoring System Now Live
+            </span>
+            <span class="ticker-item-enhanced">
+                <i class="fas fa-satellite"></i> <strong>UPDATE:</strong> Sentinel-5P Satellite Data Integration
+                Successful
+            </span>
+            <span class="ticker-item-enhanced">
+                <i class="fas fa-check-circle"></i> <strong>ALERT:</strong> Multi-Channel Notification System Activated
+            </span>
+            <span class="ticker-item-enhanced">
+                <i class="fas fa-globe-asia"></i> <strong>COVERAGE:</strong> 24/7 Continuous Monitoring Across India
+            </span>
+        </marquee>
+    </div>
+
+    <div class="container main-content">
+        <!-- Hero Section with Satellite and Radar -->
+        <section class="hero-enhanced">
+            <div class="hero-grid">
+                <div class="hero-content">
+                    <div class="hero-badge-enhanced">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>AI-Powered Monitoring</span>
+                    </div>
+                    <h2 class="hero-title-enhanced">
+                        National Air Quality
+                        <span class="highlight-text">Monitoring System</span>
+                    </h2>
+                    <p class="hero-description">
+                        Real-time autonomous monitoring powered by Artificial Intelligence,
+                        satellite data integration, and automated regulatory compliance reporting
+                        for environmental protection and public health.
+                    </p>
+                    <div class="hero-features-enhanced">
+                        <div class="feature-pill">
+                            <i class="fas fa-satellite-dish"></i>
+                            <span>Sentinel-5P</span>
+                        </div>
+                        <div class="feature-pill">
+                            <i class="fas fa-brain"></i>
+                            <span>AI Analysis</span>
+                        </div>
+                        <div class="feature-pill">
+                            <i class="fas fa-clock"></i>
+                            <span>24/7 Live</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-visuals">
+                    <div class="satellite-container">
+                        <img src="{{ url_for('static', filename='images/satellite-removebg-preview.png') }}"
+                            alt="Satellite Monitoring" class="satellite-image">
+                        <div class="orbit-ring"></div>
+                        <div class="orbit-ring orbit-ring-2"></div>
+                    </div>
+
+                    <div class="radar-wrapper">
+                        <div class="radar-screen-enhanced">
+                            <div class="radar-sweep"></div>
+                            <div class="radar-grid">
+                                <div class="radar-circle"></div>
+                                <div class="radar-circle"></div>
+                                <div class="radar-circle"></div>
+                            </div>
+                            <div class="radar-crosshair"></div>
+                            <div class="radar-blip blip-1"></div>
+                            <div class="radar-blip blip-2"></div>
+                            <div class="radar-blip blip-3"></div>
+                        </div>
+                        <div class="live-badge">
+                            <span class="pulse-dot"></span>
+                            <span>LIVE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Awareness Section -->
+        <section class="awareness-section">
+            <h2 class="section-title-enhanced">
+                <i class="fas fa-exclamation-triangle"></i>
+                Air Quality Awareness
+            </h2>
+            <div class="awareness-grid">
+                <div class="awareness-card">
+                    <div class="awareness-icon good">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h3>Good Air Quality</h3>
+                    <p>NO₂ levels below 40 µg/m³</p>
+                    <div class="awareness-image good-air">
+                        <i class="fas fa-tree" style="font-size: 4rem; color: #10b981;"></i>
+                    </div>
+                </div>
+
+                <div class="awareness-card">
+                    <div class="awareness-icon moderate">
+                        <i class="fas fa-industry"></i>
+                    </div>
+                    <h3>Moderate Pollution</h3>
+                    <p>NO₂ levels 40-80 µg/m³</p>
+                    <div class="awareness-image moderate-air">
+                        <i class="fas fa-smog" style="font-size: 4rem; color: #f59e0b;"></i>
+                    </div>
+                </div>
+
+                <div class="awareness-card">
+                    <div class="awareness-icon poor">
+                        <i class="fas fa-skull-crossbones"></i>
+                    </div>
+                    <h3>Poor Air Quality</h3>
+                    <p>NO₂ levels above 80 µg/m³</p>
+                    <div class="awareness-image poor-air">
+                        <i class="fas fa-lungs" style="font-size: 4rem; color: #ef4444;"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Dashboard -->
+        <section class="stats-dashboard">
+            <div class="stats-grid-enhanced">
+                <div class="stat-card-enhanced">
+                    <div class="stat-icon-enhanced blue">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="stat-data">
+                        <h3>4</h3>
+                        <p>AI Agents</p>
+                        <span class="status-badge active">Active</span>
+                    </div>
+                </div>
+
+                <div class="stat-card-enhanced">
+                    <div class="stat-icon-enhanced green">
+                        <i class="fas fa-satellite"></i>
+                    </div>
+                    <div class="stat-data">
+                        <h3>24/7</h3>
+                        <p>Monitoring</p>
+                        <span class="status-badge active">Live</span>
+                    </div>
+                </div>
+
+                <div class="stat-card-enhanced">
+                    <div class="stat-icon-enhanced orange">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="stat-data">
+                        <h3>Real-Time</h3>
+                        <p>Alerts</p>
+                        <span class="status-badge active">Enabled</span>
+                    </div>
+                </div>
+
+                <div class="stat-card-enhanced">
+                    <div class="stat-icon-enhanced purple">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="stat-data">
+                        <h3>Auto</h3>
+                        <p>Reports</p>
+                        <span class="status-badge active">Ready</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Agents Section -->
+        <section class="agents-section-enhanced">
+            <h2 class="section-title-enhanced">
+                <i class="fas fa-microchip"></i>
+                Autonomous AI Monitoring Agents
+            </h2>
+            <div class="agents-grid-enhanced">
+                <div class="agent-card-enhanced">
+                    <div class="agent-number">01</div>
+                    <div class="agent-icon-large">
+                        <i class="fas fa-satellite"></i>
+                    </div>
+                    <h3>Data Acquisition</h3>
+                    <p>Sentinel-5P satellite imagery retrieval and processing</p>
+                    <div class="agent-status-enhanced">
+                        <span class="status-dot-enhanced"></span>
+                        <span>Operational</span>
+                    </div>
+                </div>
+
+                <div class="agent-card-enhanced">
+                    <div class="agent-number">02</div>
+                    <div class="agent-icon-large">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI Analysis</h3>
+                    <p>ML-powered pollution assessment and categorization</p>
+                    <div class="agent-status-enhanced">
+                        <span class="status-dot-enhanced"></span>
+                        <span>Operational</span>
+                    </div>
+                </div>
+
+                <div class="agent-card-enhanced">
+                    <div class="agent-number">03</div>
+                    <div class="agent-icon-large">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h3>Report Generation</h3>
+                    <p>Automated compliance reports per regulations</p>
+                    <div class="agent-status-enhanced">
+                        <span class="status-dot-enhanced"></span>
+                        <span>Operational</span>
+                    </div>
+                </div>
+
+                <div class="agent-card-enhanced">
+                    <div class="agent-number">04</div>
+                    <div class="agent-icon-large">
+                        <i class="fas fa-broadcast-tower"></i>
+                    </div>
+                    <h3>Alert System</h3>
+                    <p>Multi-channel notification for health alerts</p>
+                    <div class="agent-status-enhanced">
+                        <span class="status-dot-enhanced"></span>
+                        <span>Operational</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Monitoring Form -->
+        <section class="monitoring-form-section">
+            <div class="form-wrapper-enhanced">
+                <div class="form-header-enhanced">
+                    <i class="fas fa-play-circle"></i>
+                    <h2>Initiate Air Quality Monitoring</h2>
+                    <p>Start AI-powered analysis for any location in India</p>
+                </div>
+
+                <form id="agentForm" class="monitoring-form-enhanced">
+                    <div class="form-row-enhanced">
+                        <div class="form-field">
+                            <label><i class="fas fa-map-marker-alt"></i> Location</label>
+                            <input type="text" id="city" name="city" value="Bengaluru" required>
+                        </div>
+                        <div class="form-field">
+                            <label><i class="fas fa-calendar"></i> Date</label>
+                            <input type="date" id="date" name="date" required>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label><i class="fas fa-calendar-week"></i> Period: <strong id="rangeValue">1
+                                day</strong></label>
+                        <input type="range" id="dateRange" name="dateRange" min="1" max="7" value="1"
+                            class="range-slider">
+                    </div>
+
+                    <div class="options-row">
+                        <label class="option-checkbox">
+                            <input type="checkbox" name="send_pushover" checked>
+                            <span class="checkbox-box"></span>
+                            <div class="option-label">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>Mobile Alerts</span>
+                            </div>
+                        </label>
+
+                        <label class="option-checkbox">
+                            <input type="checkbox" name="send_email" checked>
+                            <span class="checkbox-box"></span>
+                            <div class="option-label">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email Alerts</span>
+                            </div>
+                        </label>
+
+                        <label class="option-checkbox">
+                            <input type="checkbox" name="generate_reports" checked>
+                            <span class="checkbox-box"></span>
+                            <div class="option-label">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>PDF Reports</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="launchBtn" class="submit-button-enhanced">
+                        <i class="fas fa-rocket"></i>
+                        <span>Launch Monitoring System</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Progress Section -->
+        <section id="progressSection" style="display: none;">
+            <div class="progress-wrapper">
+                <h3><i class="fas fa-spinner fa-spin"></i> System Operation in Progress</h3>
+                <div class="progress-stages">
+                    <div class="stage" id="stage1">
+                        <i class="fas fa-satellite"></i>
+                        <span>Acquisition</span>
+                    </div>
+                    <div class="stage" id="stage2">
+                        <i class="fas fa-brain"></i>
+                        <span>Analysis</span>
+                    </div>
+                    <div class="stage" id="stage3">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Reporting</span>
+                    </div>
+                    <div class="stage" id="stage4">
+                        <i class="fas fa-bell"></i>
+                        <span>Alerts</span>
+                        <div class="footer-col">
+                            <h4>About</h4>
+                            <p>Autonomous Air Pollution Regulatory System by Government of PES</p>
+                        </div>
+                        <div class="footer-col">
+                            <h4>Quick Links</h4>
+                            <ul>
+                                <li><a href="#">Privacy Policy</a></li>
+                                <li><a href="#">Terms of Use</a></li>
+                                <li><a href="#">Accessibility</a></li>
+                            </ul>
+                        </div>
+                        <div class="footer-col">
+                            <h4>Contact</h4>
+                            <p><i class="fas fa-envelope"></i> support@govpes.in</p>
+                            <p><i class="fas fa-phone"></i> 1800-XXX-XXXX</p>
+                        </div>
+                    </div>
+                    <div class="footer-bottom">
+                        <p>© 2025 Government of PES. All rights reserved.</p>
+                    </div>
+                </div>
+                </footer>
+
+                <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+                <script>
+                    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                    });
+
+                    const slider = document.getElementById('dateRange');
+                    const rangeValue = document.getElementById('rangeValue');
+                    slider.addEventListener('input', function () {
+                        rangeValue.textContent = this.value + (this.value == 1 ? ' day' : ' days');
+                    });
+                </script>
+</body>
+
+</html>

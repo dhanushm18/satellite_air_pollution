@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Results - Government of PES</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="gov-theme">
+    <!-- Government Header -->
+    <header class="gov-header">
+        <div class="gov-top-bar">
+            <div class="container">
+                <div class="top-bar-flex">
+                    <div class="gov-branding">
+                        <img src="{{ url_for('static', filename='images/government_pes_logo.png') }}"
+                            alt="Government of PES" class="gov-logo">
+                        <div class="gov-title-block">
+                            <h1 class="gov-title">GOVERNMENT OF PES</h1>
+                            <p class="gov-subtitle">An Autonomous Air Pollution Regulatory System</p>
+                            <p class="gov-tagline">Ministry of Environment, Forest and Climate Change</p>
+                        </div>
+                    </div>
+                    <div class="gov-nav-right">
+                        <div class="gov-date">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span id="currentDate"></span>
+                        </div>
+                        <div class="gov-lang">
+                            <select class="lang-selector">
+                                <option>English</option>
+                                <option>हिन्दी</option>
+                            </select>
+                            <div class="container">
+                                <div class="emblem-content">
+                                    <i class="fas fa-landmark"></i>
+                                    <span>सत्यमेव जयते</span>
+                                    <i class="fas fa-landmark"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="container gov-container">
+                            <!-- Results Header -->
+                            <section class="results-header">
+                                <div class="results-banner">
+                                    <div class="results-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="results-info">
+                                        <h1>Monitoring Operation Completed</h1>
+                                        <p>Air Quality Analysis Report Generated Successfully</p>
+                                        <div class="results-meta">
+                                            <span><i class="fas fa-map-marker-alt"></i> {{ result.city }}</span>
+                                            <span><i class="fas fa-calendar"></i> {{ result.date }}</span>
+                                            <span><i class="fas fa-clock"></i> {{ result.timestamp }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="results-status">
+                                        <div class="status-badge success">
+                                            <i class="fas fa-shield-check"></i>
+                                            <span>VERIFIED</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Executive Summary -->
+                            <section class="gov-section">
+                                <h2 class="gov-section-title">
+                                    <i class="fas fa-clipboard-check"></i> Executive Summary
+                                </h2>
+                                <div class="summary-grid">
+                                    <div class="summary-card">
+                                        <div class="summary-icon blue">
+                                            <i class="fas fa-satellite-dish"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <h3>Data Acquisition</h3>
+                                            <p class="summary-status success">Completed</p>
+                                            <small>Sentinel-5P satellite imagery processed</small>
+                                        </div>
+                                    </div>
+                                    <div class="summary-card">
+                                        <div class="summary-icon green">
+                                            <i class="fas fa-microscope"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <h3>AI Analysis</h3>
+                                            <p class="summary-status success">Completed</p>
+                                            <small>Pollution levels categorized</small>
+                                        </div>
+                                    </div>
+                                    <div class="summary-card">
+                                        <div class="summary-icon orange">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <h3>Report Generation</h3>
+                                            <p class="summary-status success">Completed</p>
+                                            <small>Regulatory documents created</small>
+                                        </div>
+                                    </div>
+                                    <div class="summary-card">
+                                        <div class="summary-icon red">
+                                            <i class="fas fa-bell"></i>
+                                        </div>
+                                        <div class="summary-content">
+                                            <h3>Alert Dissemination</h3>
+                                            <p class="summary-status success">Completed</p>
+                                            <small>Notifications sent successfully</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Analysis Results -->
+                            <section class="gov-section">
+                                <h2 class="gov-section-title">
+                                    <i class="fas fa-chart-bar"></i> Analysis Results
+                                </h2>
+                                <div class="results-container">
+                                    <div class="results-output">
+                                        <div class="output-header">
+                                            <i class="fas fa-terminal"></i>
+                                            <span>System Output Log</span>
+                                        </div>
+                                        <pre class="output-content">{{ result.output }}</pre>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Generated Reports -->
+                            {% if result.reports %}
+                            <section class="gov-section">
+                                <h2 class="gov-section-title">
+                                    <i class="fas fa-folder-open"></i> Generated Documents
+                                </h2>
+                                <div class="reports-grid">
+                                    {% for report in result.reports %}
+                                    <div class="report-card">
+                                        <div class="report-icon">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </div>
+                                        <div class="report-info">
+                                            <h3>{{ report.name }}</h3>
+                                            <p>{{ report.description }}</p>
+                                            <div class="report-meta">
+                                                <span><i class="fas fa-file"></i> PDF Document</span>
+                                                <span><i class="fas fa-shield-alt"></i> Official Report</span>
+                                            </div>
+                                        </div>
+                                        <div class="report-actions">
+                                            <a href="{{ url_for('download_report', filename=report.filename) }}"
+                                                class="btn-download">
+                                                <i class="fas fa-download"></i> Download
+                                            </a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </section>
+                            {% endif %}
+
+                            <!-- Notification Status -->
+                            <section class="gov-section">
+                                <h2 class="gov-section-title">
+                                    <i class="fas fa-paper-plane"></i> Notification Status
+                                </h2>
+                                <div class="notification-status-grid">
+                                    <div class="notification-card">
+                                        <div class="notification-icon pushover">
+                                            <i class="fas fa-mobile-alt"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <h3>Mobile Push Notification</h3>
+                                            <p class="notification-service">Pushover Service</p>
+                                            <div class="notification-status-badge success">
+                                                <i class="fas fa-check-circle"></i> Delivered
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="notification-card">
+                                        <div class="notification-icon email">
+                                            <i class="fas fa-envelope"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <h3>Email Alert</h3>
+                                            <p class="notification-service">SMTP Service</p>
+                                            <div class="notification-status-badge success">
+                                                <i class="fas fa-check-circle"></i> Sent
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Action Buttons -->
+                            <section class="gov-section">
+                                <div class="action-buttons">
+                                    <a href="/" class="gov-action-btn primary">
+                                        <i class="fas fa-redo"></i> New Monitoring Operation
+                                    </a>
+                                    <button onclick="window.print()" class="gov-action-btn secondary">
+                                        <i class="fas fa-print"></i> Print Report
+                                    </button>
+                                    <button onclick="shareResults()" class="gov-action-btn secondary">
+                                        <i class="fas fa-share-alt"></i> Share Results
+                                    </button>
+                                </div>
+                            </section>
+                        </div>
+
+                        <!-- Government Footer -->
+                        <footer class="gov-footer">
+                            <div class="container">
+                                <div class="footer-content">
+                                    <div class="footer-section">
+                                        <h4>About This System</h4>
+                                        <p>Autonomous Air Pollution Regulatory System developed by Government of PES</p>
+                                    </div>
+                                    <div class="footer-section">
+                                        <h4>Quick Links</h4>
+                                        <ul>
+                                            <li><a href="#">Privacy Policy</a></li>
+                                            <li><a href="#">Terms of Use</a></li>
+                                            <li><a href="#">Accessibility</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="footer-section">
+                                        <h4>Contact</h4>
+                                        <p><i class="fas fa-envelope"></i> support@govpes.in</p>
+                                        <p><i class="fas fa-phone"></i> 1800-XXX-XXXX</p>
+                                    </div>
+                                </div>
+                                <div class="footer-bottom">
+                                    <p>© 2025 Government of PES. All rights reserved. | Last updated: <span
+                                            id="lastUpdated"></span></p>
+                                </div>
+                            </div>
+                        </footer>
+
+                        <script>
+                            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', {
+                                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                            });
+                            document.getElementById('lastUpdated').textContent = new Date().toLocaleString('en-IN');
+
+                            function shareResults() {
+                                alert('Share functionality - Integration with government communication channels');
+                            }
+                        </script>
+</body>
+
+</html>

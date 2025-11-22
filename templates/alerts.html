@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts - Government of PES</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body class="gov-theme">
+    <header class="gov-header-enhanced">
+        <div class="gov-top-bar-enhanced">
+            <div class="container">
+                <div class="top-bar-content">
+                    <div class="header-left">
+                        <div class="logo-wrapper">
+                            <img src="{{ url_for('static', filename='images/government_pes_logo.png') }}"
+                                alt="Government of PES" class="gov-logo-enhanced">
+                            <div class="logo-glow"></div>
+                        </div>
+                        <div class="title-section">
+                            <h1 class="main-title">
+                                <span class="title-line-1">GOVERNMENT OF PES</span>
+                                <span class="title-line-2">Air Quality Intelligence System</span>
+                            </h1>
+                            <p class="ministry-tag"><i class="fas fa-building"></i> Ministry of Environment, Forest and
+                                Climate Change</p>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <div class="date-display"><i class="fas fa-calendar-day"></i><span id="currentDate"></span>
+                        </div>
+                        <select class="lang-select">
+                            <option>English</option>
+                            <option>हिन्दी</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="main-navigation">
+            <div class="container">
+                <ul class="nav-list">
+                    <li class="nav-item" onclick="window.location.href='/'"><i class="fas fa-home"></i> Home</li>
+                    <li class="nav-item" onclick="window.location.href='/dashboard'"><i class="fas fa-chart-line"></i>
+                        Dashboard</li>
+                    <li class="nav-item" onclick="window.location.href='/reports'"><i class="fas fa-file-alt"></i>
+                        Reports</li>
+                    <li class="nav-item active" onclick="window.location.href='/alerts'"><i class="fas fa-bell"></i>
+                        Alerts</li>
+                    <li class="nav-item" onclick="window.location.href='/settings'"><i class="fas fa-cog"></i> Settings
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='/about'"><i class="fas fa-info-circle"></i>
+                        About</li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <div class="tricolor-strip">
+        <div class="color-band orange"></div>
+        <div class="color-band white"><span class="motto">ಸ್ವಚ್ಛವಾದ ಗಾಳಿ, ಸುರಕ್ಷಿತ ಭಾರತ</span></div>
+        <div class="color-band green"></div>
+    </div>
+    <div class="container main-content">
+        <section class="page-header-enhanced">
+            <h1 class="page-title-enhanced"><i class="fas fa-bell"></i> Alert Management</h1>
+            <p class="page-subtitle">Configure notification settings and view alert history</p>
+        </section>
+        <section class="alert-config-enhanced">
+            <h2 class="section-title-enhanced"><i class="fas fa-cog"></i> Notification Configuration</h2>
+            <div class="config-grid">
+                <div class="config-card-enhanced">
+                    <div class="config-icon email"><i class="fas fa-envelope"></i></div>
+                    <h3>Email Alerts</h3>
+                    <p>Current Recipients: <strong>{{ email_count if email_count else 0 }}</strong></p>
+                    <div class="config-details">{{ email_recipients if email_recipients else 'Not configured' }}</div>
+                    <button class="config-btn"><i class="fas fa-edit"></i> Configure</button>
+                </div>
+                <div class="config-card-enhanced">
+                    <div class="config-icon pushover"><i class="fas fa-mobile-alt"></i></div>
+                    <h3>Pushover Notifications</h3>
+                    <p>Status: <strong>{{ 'Enabled' if pushover_configured else 'Disabled' }}</strong></p>
+                    <div class="config-details">Mobile push notifications</div>
+                    <button class="config-btn"><i class="fas fa-edit"></i> Configure</button>
+                </div>
+                <div class="config-card-enhanced">
+                    <div class="config-icon thresholds"><i class="fas fa-sliders-h"></i></div>
+                    <h3>Alert Thresholds</h3>
+                    <p>NO₂ Limit: <strong>80 µg/m³</strong></p>
+                    <div class="config-details">Trigger alerts above threshold</div>
+                    <button class="config-btn"><i class="fas fa-edit"></i> Configure</button>
+                </div>
+            </div>
+        </section>
+        <section class="test-notifications-enhanced">
+            <h2 class="section-title-enhanced"><i class="fas fa-vial"></i> Test Notifications</h2>
+            <div class="test-buttons-grid">
+                <button class="test-btn email-test"><i class="fas fa-envelope"></i> Send Test Email</button>
+                <button class="test-btn pushover-test"><i class="fas fa-mobile-alt"></i> Send Test Push</button>
+            </div>
+        </section>
+        <section class="recent-alerts-enhanced">
+            <h2 class="section-title-enhanced"><i class="fas fa-history"></i> Recent Alerts</h2>
+            <div class="alerts-table-card">
+                <table class="data-table-enhanced">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Type</th>
+                            <th>NO₂ Level</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2025-01-22 14:30</td>
+                            <td>Bengaluru</td>
+                            <td><span class="table-badge email">Email</span></td>
+                            <td>42 µg/m³</td>
+                            <td><span class="table-badge success">Sent</span></td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-22 14:30</td>
+                            <td>Bengaluru</td>
+                            <td><span class="table-badge pushover">Push</span></td>
+                            <td>42 µg/m³</td>
+                            <td><span class="table-badge success">Sent</span></td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-21 10:15</td>
+                            <td>Delhi</td>
+                            <td><span class="table-badge email">Email</span></td>
+                            <td>68 µg/m³</td>
+                            <td><span class="table-badge success">Sent</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    <footer class="gov-footer-enhanced">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>About</h4>
+                    <p>Autonomous Air Pollution Regulatory System by Government of PES</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Use</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> support@govpes.in</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Government of PES. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+    </script>
+</body>
+
+</html>

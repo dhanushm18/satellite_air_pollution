@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Government of PES</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body class="gov-theme">
+    <header class="gov-header-enhanced">
+        <div class="gov-top-bar-enhanced">
+            <div class="container">
+                <div class="top-bar-content">
+                    <div class="header-left">
+                        <div class="logo-wrapper">
+                            <img src="{{ url_for('static', filename='images/government_pes_logo.png') }}"
+                                alt="Government of PES" class="gov-logo-enhanced">
+                            <div class="logo-glow"></div>
+                        </div>
+                        <div class="title-section">
+                            <h1 class="main-title">
+                                <span class="title-line-1">GOVERNMENT OF PES</span>
+                                <span class="title-line-2">Air Quality Intelligence System</span>
+                            </h1>
+                            <p class="ministry-tag"><i class="fas fa-building"></i> Ministry of Environment, Forest and
+                                Climate Change</p>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <div class="date-display"><i class="fas fa-calendar-day"></i><span id="currentDate"></span>
+                        </div>
+                        <select class="lang-select">
+                            <option>English</option>
+                            <option>हिन्दी</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="main-navigation">
+            <div class="container">
+                <ul class="nav-list">
+                    <li class="nav-item" onclick="window.location.href='/'"><i class="fas fa-home"></i> Home</li>
+                    <li class="nav-item" onclick="window.location.href='/dashboard'"><i class="fas fa-chart-line"></i>
+                        Dashboard</li>
+                    <li class="nav-item" onclick="window.location.href='/reports'"><i class="fas fa-file-alt"></i>
+                        Reports</li>
+                    <li class="nav-item" onclick="window.location.href='/alerts'"><i class="fas fa-bell"></i> Alerts
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='/settings'"><i class="fas fa-cog"></i> Settings
+                    </li>
+                    <li class="nav-item active" onclick="window.location.href='/about'"><i
+                            class="fas fa-info-circle"></i> About</li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <div class="tricolor-strip">
+        <div class="color-band orange"></div>
+        <div class="color-band white"><span class="motto">ಸ್ವಚ್ಛವಾದ ಗಾಳಿ, ಸುರಕ್ಷಿತ ಭಾರತ</span></div>
+        <div class="color-band green"></div>
+    </div>
+    <div class="container main-content">
+        <section class="page-header-enhanced">
+            <h1 class="page-title-enhanced"><i class="fas fa-info-circle"></i> About the System</h1>
+            <p class="page-subtitle">Autonomous Air Pollution Regulatory System</p>
+        </section>
+        <section class="about-overview-enhanced">
+            <div class="overview-card-large">
+                <h2>System Overview</h2>
+                <p>The Government of PES Air Quality Intelligence System is an advanced autonomous monitoring platform
+                    that leverages artificial intelligence, satellite data, and real-time analytics to monitor and
+                    report air pollution levels across India.</p>
+                <p>This system integrates cutting-edge technologies including Sentinel-5P satellite imagery, machine
+                    learning algorithms, and automated regulatory compliance reporting to provide comprehensive air
+                    quality monitoring and public health protection.</p>
+            </div>
+        </section>
+        <section class="features-enhanced">
+            <h2 class="section-title-enhanced"><i class="fas fa-star"></i> Key Features</h2>
+            <div class="features-grid-enhanced">
+                <div class="feature-card-enhanced">
+                    <div class="feature-icon-large blue"><i class="fas fa-satellite"></i></div>
+                    <h3>Satellite Data Integration</h3>
+                    <p>Real-time NO₂ monitoring using Sentinel-5P satellite imagery via Google Earth Engine</p>
+                </div>
+                <div class="feature-card-enhanced">
+                    <div class="feature-icon-large green"><i class="fas fa-brain"></i></div>
+                    <h3>AI-Powered Analysis</h3>
+                    <p>Machine learning algorithms for pollution level assessment and categorization</p>
+                </div>
+                <div class="feature-card-enhanced">
+                    <div class="feature-icon-large orange"><i class="fas fa-file-contract"></i></div>
+                    <h3>Automated Reporting</h3>
+                    <p>CPCB and WHO compliant PDF reports generated automatically</p>
+                </div>
+                <div class="feature-card-enhanced">
+                    <div class="feature-icon-large purple"><i class="fas fa-bell"></i></div>
+                    <h3>Multi-Channel Alerts</h3>
+                    <p>Email and mobile push notifications for real-time health advisories</p>
+                </div>
+            </div>
+        </section>
+        <section class="tech-stack-enhanced">
+            <h2 class="section-title-enhanced"><i class="fas fa-code"></i> Technology Stack</h2>
+            <div class="tech-grid-enhanced">
+                <div class="tech-item"><i class="fas fa-robot"></i> CrewAI Framework</div>
+                <div class="tech-item"><i class="fas fa-brain"></i> OpenAI GPT API</div>
+                <div class="tech-item"><i class="fas fa-satellite"></i> Google Earth Engine</div>
+                <div class="tech-item"><i class="fas fa-mobile-alt"></i> Pushover API</div>
+                <div class="tech-item"><i class="fas fa-envelope"></i> SMTP Email Service</div>
+                <div class="tech-item"><i class="fas fa-file-pdf"></i> ReportLab PDF Generation</div>
+                <div class="tech-item"><i class="fas fa-server"></i> Flask Web Framework</div>
+                <div class="tech-item"><i class="fas fa-python"></i> Python Backend</div>
+            </div>
+        </section>
+        <section class="standards-enhanced">
+            <h2 class="section-title-enhanced"><i class="fas fa-clipboard-check"></i> Air Quality Standards</h2>
+            <div class="standards-table-card">
+                <table class="data-table-enhanced">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>NO₂ Level (µg/m³)</th>
+                            <th>Health Impact</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="table-badge good">Good</span></td>
+                            <td>0 - 40</td>
+                            <td>Minimal impact</td>
+                            <td>Normal activities</td>
+                        </tr>
+                        <tr>
+                            <td><span class="table-badge moderate">Moderate</span></td>
+                            <td>40 - 80</td>
+                            <td>Sensitive groups affected</td>
+                            <td>Limit outdoor exposure</td>
+                        </tr>
+                        <tr>
+                            <td><span class="table-badge poor">Poor</span></td>
+                            <td>80+</td>
+                            <td>General population affected</td>
+                            <td>Avoid outdoor activities</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section class="contact-enhanced">
+            <h2 class="section-title-enhanced"><i class="fas fa-phone"></i> Contact Information</h2>
+            <div class="contact-grid-enhanced">
+                <div class="contact-card-enhanced">
+                    <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                    <h3>Email Support</h3>
+                    <p>support@govpes.in</p>
+                </div>
+                <div class="contact-card-enhanced">
+                    <div class="contact-icon"><i class="fas fa-phone"></i></div>
+                    <h3>Helpline</h3>
+                    <p>1800-XXX-XXXX</p>
+                </div>
+                <div class="contact-card-enhanced">
+                    <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <h3>Address</h3>
+                    <p>Ministry of Environment<br>Government of PES</p>
+                </div>
+            </div>
+        </section>
+    </div>
+    <footer class="gov-footer-enhanced">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>About</h4>
+                    <p>Autonomous Air Pollution Regulatory System by Government of PES</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Use</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> support@govpes.in</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Government of PES. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+    </script>
+</body>
+
+</html>
