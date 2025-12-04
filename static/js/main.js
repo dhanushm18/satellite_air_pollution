@@ -95,19 +95,48 @@ function pollStatus(jobId) {
         { id: 'stage4', text: '<i class="fas fa-bell fa-spin"></i> Sending notifications...', progress: 90 }
     ];
 
+    // Countdown Timer Logic
+    let timeLeft = 90;
+    const timerElement = document.getElementById('countdownTimer');
+
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timerElement) {
+            timerElement.innerHTML = `<i class="fas fa-clock"></i> ${timeLeft}s`;
+            if (timeLeft <= 10) {
+                timerElement.style.color = '#ef4444'; // Red warning
+            }
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            clearInterval(interval);
+            // Force redirect
+            window.location.href = `/results/${jobId}`;
+        }
+    }, 1000);
+
     const interval = setInterval(async () => {
         try {
             const response = await fetch(`/api/status/${jobId}`);
             const status = await response.json();
 
             // Update stage
-            if (currentStage < stages.length) {
+            // Update stage (only if not at the last stage)
+            if (currentStage < stages.length - 1) {
                 const stage = stages[currentStage];
                 document.getElementById(stage.id).classList.add('active');
                 progressText.innerHTML = stage.text;
                 progress = stage.progress;
                 progressFill.style.width = `${progress}%`;
                 currentStage++;
+            } else {
+                // At last stage, just wait
+                const stage = stages[stages.length - 1];
+                document.getElementById(stage.id).classList.add('active');
+                progressText.innerHTML = stage.text;
+                progress = stage.progress;
+                progressFill.style.width = `${progress}%`;
             }
 
             // Update progress text if available
@@ -115,9 +144,32 @@ function pollStatus(jobId) {
                 progressText.innerHTML = `<i class="fas fa-cog fa-spin"></i> ${status.progress}`;
             }
 
+            // Update Live Logs
+            const logsContainer = document.getElementById('liveLogs');
+            if (status.logs && status.logs.length > 0) {
+                // Clear existing logs to avoid duplicates (or append smartly)
+                // For simplicity, we'll rebuild if the count changes, or just append new ones
+                // Better approach: just replace content if it's not too large, or append
+
+                // Simple approach: Rebuild logs from status.logs
+                logsContainer.innerHTML = '';
+                status.logs.forEach(log => {
+                    const logEntry = document.createElement('div');
+                    logEntry.className = 'log-entry';
+                    // Parse timestamp if available or use current time
+                    const time = new Date().toLocaleTimeString();
+                    logEntry.innerHTML = `<span class="log-time">${time}</span> <span class="log-msg">${log}</span>`;
+                    logsContainer.appendChild(logEntry);
+                });
+
+                // Auto-scroll to bottom
+                logsContainer.parentElement.scrollTop = logsContainer.parentElement.scrollHeight;
+            }
+
             // Check if complete
             if (status.status === 'complete') {
                 clearInterval(interval);
+                clearInterval(timerInterval); // Stop countdown
 
                 // Complete all stages
                 stages.forEach(stage => {
@@ -135,6 +187,7 @@ function pollStatus(jobId) {
                 }, 1500);
             } else if (status.status === 'error') {
                 clearInterval(interval);
+                clearInterval(timerInterval); // Stop countdown
                 progressFill.style.width = '100%';
                 progressFill.style.background = 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
                 progressText.innerHTML = `<i class="fas fa-exclamation-circle"></i> ❌ Error: ${status.error || 'Unknown error'}`;

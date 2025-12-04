@@ -43,6 +43,22 @@ def run_agents_background(job_id, city, start_date, end_date, send_alerts, gener
                 'logs_count': len(job_logs[job_id])
             }
         
+        def agent_callback(step_output):
+            """Callback for agent steps"""
+            # step_output is usually a string or object with output
+            # We'll try to extract meaningful text
+            try:
+                if hasattr(step_output, 'thought'):
+                    msg = f"🤔 {step_output.thought}"
+                elif hasattr(step_output, 'output'):
+                    msg = f"🤖 {str(step_output.output)[:100]}..."
+                else:
+                    msg = f"🤖 Agent working: {str(step_output)[:100]}..."
+                
+                add_log(msg)
+            except:
+                add_log("🤖 Agent active...")
+
         add_log(f'Starting air quality monitoring for {city}')
         add_log(f'Date range: {start_date} to {end_date}')
         add_log('Initializing AI agents...')
@@ -53,7 +69,8 @@ def run_agents_background(job_id, city, start_date, end_date, send_alerts, gener
             start_date=start_date,
             end_date=end_date,
             send_alerts=send_alerts,
-            generate_reports=generate_reports
+            generate_reports=generate_reports,
+            log_callback=agent_callback
         )
         
         add_log('All agents completed successfully!')
@@ -101,7 +118,8 @@ def run_agents():
     
     city = data.get('city', 'Bengaluru')
     date = data.get('date', datetime.now().strftime('%Y-%m-%d'))
-    date_range = int(data.get('date_range', 1))
+    # Default to 30 days if not specified or if it's the default 1 from UI
+    date_range = int(data.get('date_range', 30))
     send_pushover = data.get('send_pushover', True)
     send_email = data.get('send_email', True)
     generate_reports = data.get('generate_reports', True)
@@ -129,7 +147,11 @@ def get_status(job_id):
     if job_id in job_results:
         return jsonify(job_results[job_id])
     elif job_id in job_status:
-        return jsonify(job_status[job_id])
+        status = job_status[job_id].copy()
+        if job_id in job_logs:
+            # Return list of log messages
+            status['logs'] = [l['message'] for l in job_logs[job_id]]
+        return jsonify(status)
     else:
         return jsonify({'status': 'not_found'}), 404
 

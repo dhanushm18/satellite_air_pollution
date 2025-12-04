@@ -345,7 +345,7 @@
                     <div class="form-field">
                         <label><i class="fas fa-calendar-week"></i> Period: <strong id="rangeValue">1
                                 day</strong></label>
-                        <input type="range" id="dateRange" name="dateRange" min="1" max="7" value="1"
+                        <input type="range" id="dateRange" name="dateRange" min="1" max="30" value="30"
                             class="range-slider">
                     </div>
 
@@ -406,28 +406,48 @@
                     <div class="stage" id="stage4">
                         <i class="fas fa-bell"></i>
                         <span>Alerts</span>
-                        <div class="footer-col">
-                            <h4>About</h4>
-                            <p>Autonomous Air Pollution Regulatory System by Government of PES</p>
-                        </div>
-                        <div class="footer-col">
-                            <h4>Quick Links</h4>
-                            <ul>
-                                <li><a href="#">Privacy Policy</a></li>
-                                <li><a href="#">Terms of Use</a></li>
-                                <li><a href="#">Accessibility</a></li>
-                            </ul>
-                        </div>
-                        <div class="footer-col">
-                            <h4>Contact</h4>
-                            <p><i class="fas fa-envelope"></i> support@govpes.in</p>
-                            <p><i class="fas fa-phone"></i> 1800-XXX-XXXX</p>
-                        </div>
-                    </div>
-                    <div class="footer-bottom">
-                        <p>© 2025 Government of PES. All rights reserved.</p>
                     </div>
                 </div>
+
+                <!-- Live Logs Section -->
+                <div class="logs-container-enhanced"
+                    style="margin-top: 30px; background: #000000; border-radius: 10px; padding: 15px; max-height: 200px; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 0.95em; color: #ffffff; border: 1px solid #333; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
+                    <div class="logs-header"
+                        style="border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; padding-bottom: 5px; font-weight: bold;">
+                        <i class="fas fa-terminal"></i> Live System Logs <span id="countdownTimer"
+                            style="float:right; color: #fbbf24; font-size: 0.9em;"><i class="fas fa-clock"></i>
+                            90s</span>
+                    </div>
+                    <div id="liveLogs" class="logs-content">
+                        <div class="log-entry"><span class="log-time">--:--:--</span> <span class="log-msg">Waiting for
+                                system initialization...</span></div>
+                    </div>
+                </div>
+
+                <div class="footer-wrapper"
+                    style="display: flex; justify-content: space-between; margin-top: 40px; flex-wrap: wrap;">
+                    <div class="footer-col">
+                        <h4>About</h4>
+                        <p>Autonomous Air Pollution Regulatory System by Government of PES</p>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Quick Links</h4>
+                        <ul>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Terms of Use</a></li>
+                            <li><a href="#">Accessibility</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Contact</h4>
+                        <p><i class="fas fa-envelope"></i> support@govpes.in</p>
+                        <p><i class="fas fa-phone"></i> 1800-XXX-XXXX</p>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>© 2025 Government of PES. All rights reserved.</p>
+                </div>
+
                 </footer>
 
                 <script src="{{ url_for('static', filename='js/main.js') }}"></script>

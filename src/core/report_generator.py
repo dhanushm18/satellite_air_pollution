@@ -135,11 +135,13 @@ class RegulatoryReportGenerator:
         story.append(Spacer(1, 0.3*inch))
         
         # Add Satellite Image if available
-        satellite_image_path = f"agent_downloads/{city}_{start_date}_{end_date}.tif".replace(" ", "_")
+        satellite_image_path = f"agents_downloads/{city}_{start_date}_{end_date}.tif".replace(" ", "_")
         if os.path.exists(satellite_image_path):
             try:
                 # Convert GeoTIFF to PNG for display
                 import rasterio
+                import matplotlib
+                matplotlib.use('Agg') # Use non-interactive backend
                 import matplotlib.pyplot as plt
                 import numpy as np
                 
