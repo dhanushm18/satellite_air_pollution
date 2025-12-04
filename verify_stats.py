@@ -53,7 +53,7 @@ try:
         val = stats.get('tropospheric_NO2_column_number_density')
         if val:
             print(f"Mean NO2: {val} mol/m^2")
-            print(f"Mean NO2: {val * 46000} µg/m³ (approx)")
+            print(f"Mean NO2: {val * 200000} µg/m³ (approx)")
     else:
         print("No images found")
 

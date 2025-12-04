@@ -168,10 +168,12 @@ def analysis_tool(file_path: str):
         mean_no2 = data.get('mean_no2_mol', 0)
         max_no2 = data.get('max_no2_mol', 0)
         
-        # Convert to µg/m³ (approximate conversion)
-        # 1 mol/m² ≈ 46006 µg/m³ (molar mass of NO2 is 46.006 g/mol)
-        mean_ug = mean_no2 * 46006
-        max_ug = max_no2 * 46006
+        # Convert to µg/m³
+        # 1 mol/m² * 46.0055 g/mol * 1e6 µg/g / H (m)
+        # Assuming an effective mixing height (H) of ~230m to estimate surface concentration
+        conversion_factor = 200000 
+        mean_ug = mean_no2 * conversion_factor
+        max_ug = max_no2 * conversion_factor
         
         # Categorize
         if mean_ug < 20:

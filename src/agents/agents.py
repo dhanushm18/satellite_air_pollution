@@ -61,12 +61,23 @@ class SatelliteTasks:
             expected_output='The absolute path to the saved JSON data file.'
         )
 
-    def analysis_task(self, agent, context):
+    def analysis_task(self, agent, context, city):
         return Task(
-            description='Analyze the retrieved NO2 data. The output of the previous task IS the absolute file path to the JSON data. You MUST use that EXACT path string as the "file_path" argument for the "Analyze Air Quality" tool. Do not modify the path or use a placeholder.',
+            description=f'''Analyze the retrieved NO2 data for {city}. 
+            The output of the previous task IS the absolute file path to the JSON data. 
+            You MUST use that EXACT path string as the "file_path" argument for the "Analyze Air Quality" tool. 
+            Do not modify the path or use a placeholder.
+
+            After getting the analysis results, compare the values with the following expected ranges for today:
+            - Delhi: 40 – 130 µg/m³
+            - Mumbai: 30 – 50 µg/m³
+            - Bengaluru: below ~ 40 µg/m³
+
+            Explicitly state if the current values for {city} are within, above, or below these expected ranges.
+            ''',
             agent=agent,
             context=context,
-            expected_output='Analysis results text containing "Average NO2", "Peak NO2", and the category.'
+            expected_output='Analysis results text containing "Average NO2", "Peak NO2", category, and range comparison.'
         )
 
     def report_task(self, agent, context, city, start_date, end_date):
@@ -121,7 +132,7 @@ def run_satellite_crew(city, start_date, end_date, send_alerts=True, generate_re
 
     # Instantiate Tasks
     task1 = tasks.search_task(scout, city, start_date, end_date)
-    task2 = tasks.analysis_task(analyst, context=[task1])
+    task2 = tasks.analysis_task(analyst, context=[task1], city=city)
     
     task_list = [task1, task2]
     agent_list = [scout, analyst]

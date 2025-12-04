@@ -60,8 +60,8 @@ def get_city_no2_stats(city_name, lat, lon):
         
         val = stats.get('tropospheric_NO2_column_number_density')
         if val:
-            # Convert to µg/m³ (approximate conversion factor)
-            return round(val * 46000, 2)
+            # Convert to µg/m³ (Assuming effective mixing height of ~230m)
+            return round(val * 200000, 2)
         return 0
     except Exception as e:
         print(f"Error fetching stats for {city_name}: {e}")
