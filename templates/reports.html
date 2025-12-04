@@ -8,117 +8,154 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gov: {
+                            primary: '#1a365d',
+                            secondary: '#2d3748',
+                            accent: '#ed8936'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
-<body class="gov-theme">
-    <header class="gov-header-enhanced">
-        <div class="gov-top-bar-enhanced">
-            <div class="container">
-                <div class="top-bar-content">
-                    <div class="header-left">
-                        <div class="logo-wrapper">
-                            <img src="{{ url_for('static', filename='images/government_pes_logo.png') }}"
-                                alt="Government of PES" class="gov-logo-enhanced">
-                            <div class="logo-glow"></div>
-                        </div>
-                        <div class="title-section">
-                            <h1 class="main-title">
-                                <span class="title-line-1">GOVERNMENT OF PES</span>
-                                <span class="title-line-2">Air Quality Intelligence System</span>
-                            </h1>
-                            <p class="ministry-tag"><i class="fas fa-building"></i> Ministry of Environment, Forest and
-                                Climate Change</p>
-                        </div>
-                    </div>
-                    <div class="header-right">
-                        <div class="date-display"><i class="fas fa-calendar-day"></i><span id="currentDate"></span>
-                        </div>
-                        <select class="lang-select">
-                            <option>English</option>
-                            <option>हिन्दी</option>
-                        </select>
-                    </div>
+<body class="bg-gray-50 font-['Poppins']">
+    <!-- Enhanced Government Header -->
+    <header class="bg-white shadow-md border-b-4 border-orange-500">
+        <div class="bg-gray-900 text-white py-2 text-xs">
+            <div class="container mx-auto px-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="flex items-center gap-2"><img src="https://flagcdn.com/w20/in.png" alt="India Flag"
+                            class="h-3"> Government of India</span>
+                    <span class="hidden md:inline">Ministry of Environment, Forest and Climate Change</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="currentDate"></span>
+                    <select class="bg-gray-800 border border-gray-700 rounded px-2 py-0.5 text-xs focus:outline-none">
+                        <option>English</option>
+                        <option>हिन्दी</option>
+                    </select>
                 </div>
             </div>
         </div>
-        <nav class="main-navigation">
-            <div class="container">
-                <ul class="nav-list">
-                    <li class="nav-item" onclick="window.location.href='/'"><i class="fas fa-home"></i> Home</li>
-                    <li class="nav-item" onclick="window.location.href='/dashboard'"><i class="fas fa-chart-line"></i>
-                        Dashboard</li>
-                    <li class="nav-item active" onclick="window.location.href='/reports'"><i
-                            class="fas fa-file-alt"></i> Reports</li>
-                    <li class="nav-item" onclick="window.location.href='/alerts'"><i class="fas fa-bell"></i> Alerts
-                    </li>
-                    <li class="nav-item" onclick="window.location.href='/settings'"><i class="fas fa-cog"></i> Settings
-                    </li>
-                    <li class="nav-item" onclick="window.location.href='/about'"><i class="fas fa-info-circle"></i>
-                        About</li>
+
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <img src="{{ url_for('static', filename='images/government_pes_logo.png') }}"
+                        alt="Government of PES" class="h-16 w-auto drop-shadow-md">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800 leading-tight">GOVERNMENT OF PES</h1>
+                        <p class="text-sm text-gray-600 font-medium tracking-wide">Air Quality Intelligence System</p>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" alt="Emblem"
+                        class="h-14 opacity-80">
+                </div>
+            </div>
+        </div>
+
+        <nav class="bg-gov-primary text-white shadow-inner">
+            <div class="container mx-auto px-4">
+                <ul class="flex flex-wrap gap-1">
+                    <li><a href="/" class="block px-6 py-3 hover:bg-white/10 transition-colors"><i
+                                class="fas fa-home mr-2"></i> Home</a></li>
+                    <li><a href="/dashboard" class="block px-6 py-3 hover:bg-white/10 transition-colors"><i
+                                class="fas fa-chart-line mr-2"></i> Dashboard</a></li>
+                    <li><a href="/reports"
+                            class="block px-6 py-3 bg-white/20 font-semibold border-b-2 border-orange-400"><i
+                                class="fas fa-file-alt mr-2"></i> Reports</a></li>
+                    <li><a href="/alerts" class="block px-6 py-3 hover:bg-white/10 transition-colors"><i
+                                class="fas fa-bell mr-2"></i> Alerts</a></li>
+                    <li><a href="/settings" class="block px-6 py-3 hover:bg-white/10 transition-colors"><i
+                                class="fas fa-cog mr-2"></i> Settings</a></li>
+                    <li><a href="/about" class="block px-6 py-3 hover:bg-white/10 transition-colors"><i
+                                class="fas fa-info-circle mr-2"></i> About</a></li>
                 </ul>
             </div>
         </nav>
     </header>
-    <div class="tricolor-strip">
-        <div class="color-band orange"></div>
-        <div class="color-band white"><span class="motto">ಸ್ವಚ್ಛವಾದ ಗಾಳಿ, ಸುರಕ್ಷಿತ ಭಾರತ</span></div>
-        <div class="color-band green"></div>
+
+    <!-- Tri-color Strip -->
+    <div class="h-12 flex w-full shadow-sm">
+        <div class="w-1/3 bg-[#FF9933]"></div>
+        <div class="w-1/3 bg-white flex items-center justify-center">
+            <span class="text-[#1a365d] font-bold text-sm md:text-base tracking-wide">ಸ್ವಚ್ಛವಾದ ಗಾಳಿ, ಸುರಕ್ಷಿತ
+                ಭಾರತ</span>
+        </div>
+        <div class="w-1/3 bg-[#138808]"></div>
     </div>
-    <div class="container main-content">
-        <section class="page-header-enhanced">
-            <h1 class="page-title-enhanced"><i class="fas fa-file-alt"></i> Reports Archive</h1>
-            <p class="page-subtitle">Download and view generated compliance reports</p>
+
+    <div class="container mx-auto px-4 py-10">
+        <section class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4"><i class="fas fa-file-alt text-blue-600 mr-3"></i> Reports
+                Archive</h1>
+            <p class="text-xl text-gray-600">Download and view generated compliance reports</p>
         </section>
 
-        <section class="reports-summary-enhanced">
-            <div class="summary-card-large">
-                <div class="summary-stat">
-                    <div class="stat-icon-enhanced blue"><i class="fas fa-file-pdf"></i></div>
-                    <div>
-                        <h2>{{ total_reports }}</h2>
-                        <p>Total Reports Generated</p>
-                    </div>
+        <section class="mb-16">
+            <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 flex items-center gap-8">
+                <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center text-blue-600 shrink-0">
+                    <i class="fas fa-file-pdf text-3xl"></i>
                 </div>
-                <div class="summary-info">
-                    <p><i class="fas fa-info-circle"></i> All reports are CPCB and WHO compliant, generated
-                        automatically by our AI system.</p>
+                <div>
+                    <h2 class="text-4xl font-bold text-gray-900 mb-2">{{ total_reports }}</h2>
+                    <p class="text-gray-500 font-medium uppercase tracking-wide">Total Reports Generated</p>
+                    <p class="text-sm text-gray-400 mt-2"><i class="fas fa-info-circle mr-1"></i> All reports are CPCB
+                        and WHO compliant, generated automatically by our AI system.</p>
                 </div>
             </div>
         </section>
 
-        <section class="reports-list-enhanced">
-            <h2 class="section-title-enhanced"><i class="fas fa-folder-open"></i> Available Reports</h2>
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3"><i
+                    class="fas fa-folder-open text-yellow-500"></i> Available Reports</h2>
             {% if available_reports %}
-            <div class="reports-grid">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for report in available_reports %}
-                <div class="report-card-enhanced">
-                    <div class="report-icon-large">
-                        <i class="fas fa-file-pdf"></i>
-                    </div>
-                    <div class="report-info">
-                        <h3>{{ report.filename }}</h3>
-                        <div class="report-meta">
-                            <span><i class="fas fa-calendar"></i> {{ report.date }}</span>
-                            <span><i class="fas fa-file"></i> {{ report.size_mb }} MB</span>
+                <div
+                    class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-all group">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="bg-red-50 p-3 rounded-lg text-red-500 group-hover:bg-red-100 transition-colors">
+                            <i class="fas fa-file-pdf text-2xl"></i>
                         </div>
-                        <div class="report-badges">
-                            <span class="report-badge cpcb"><i class="fas fa-check-circle"></i> CPCB Compliant</span>
-                            <span class="report-badge who"><i class="fas fa-globe"></i> WHO Standards</span>
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold"><i
+                                    class="fas fa-check-circle"></i> CPCB</span>
+                            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-bold"><i
+                                    class="fas fa-globe"></i> WHO</span>
                         </div>
                     </div>
-                    <a href="{{ url_for('download_report', filename=report.filename) }}" class="download-btn-enhanced">
-                        <i class="fas fa-download"></i>
-                        Download
+                    <h3 class="text-lg font-bold text-gray-800 mb-2 truncate" title="{{ report.filename }}">{{
+                        report.filename }}</h3>
+                    <div class="flex justify-between text-xs text-gray-500 mb-6">
+                        <span><i class="fas fa-calendar mr-1"></i> {{ report.date }}</span>
+                        <span><i class="fas fa-file mr-1"></i> {{ report.size_mb }} MB</span>
+                    </div>
+                    <a href="{{ url_for('download_report', filename=report.filename) }}"
+                        class="block w-full bg-gray-900 hover:bg-gray-800 text-white text-center py-2 rounded-lg transition-colors font-medium">
+                        <i class="fas fa-download mr-2"></i> Download
                     </a>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="no-reports-message">
-                <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
-                <h3>No Reports Available</h3>
-                <p>Run a monitoring operation to generate reports</p>
-                <a href="/" class="action-btn primary">
+            <div class="bg-gray-50 rounded-xl p-12 text-center border-2 border-dashed border-gray-200">
+                <div class="text-gray-300 mb-4">
+                    <i class="fas fa-inbox text-6xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-700 mb-2">No Reports Available</h3>
+                <p class="text-gray-500 mb-6">Run a monitoring operation to generate reports</p>
+                <a href="/"
+                    class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition-colors">
                     <i class="fas fa-play-circle"></i>
                     <span>Start Monitoring</span>
                 </a>
@@ -126,48 +163,74 @@
             {% endif %}
         </section>
 
-        <section class="report-types-info">
-            <h2 class="section-title-enhanced"><i class="fas fa-info-circle"></i> Report Types</h2>
-            <div class="info-grid-enhanced">
-                <div class="info-card-enhanced">
-                    <div class="info-icon regulatory"><i class="fas fa-gavel"></i></div>
-                    <h3>Regulatory Compliance Report</h3>
-                    <p>Official government compliance documentation with CPCB standards, pollution levels, and
-                        regulatory recommendations.</p>
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3"><i
+                    class="fas fa-info-circle text-gray-600"></i> Report Types</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div
+                    class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow flex items-start gap-4">
+                    <div class="bg-purple-100 p-3 rounded-lg text-purple-600 shrink-0">
+                        <i class="fas fa-gavel text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Regulatory Compliance Report</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">Official government compliance documentation
+                            with CPCB standards, pollution levels, and regulatory recommendations.</p>
+                    </div>
                 </div>
-                <div class="info-card-enhanced">
-                    <div class="info-icon prevention"><i class="fas fa-shield-alt"></i></div>
-                    <h3>Prevention Guide</h3>
-                    <p>Public health advisory with prevention measures, health impacts, and recommended actions for
-                        citizens.</p>
+                <div
+                    class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow flex items-start gap-4">
+                    <div class="bg-teal-100 p-3 rounded-lg text-teal-600 shrink-0">
+                        <i class="fas fa-shield-alt text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Prevention Guide</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">Public health advisory with prevention
+                            measures, health impacts, and recommended actions for citizens.</p>
+                    </div>
                 </div>
             </div>
         </section>
     </div>
-    <footer class="gov-footer-enhanced">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <h4>About</h4>
-                    <p>Autonomous Air Pollution Regulatory System by Government of PES</p>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-12 border-t-4 border-orange-500">
+        <div class="container mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-orange-400">About System</h4>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        The Autonomous Air Pollution Regulatory System utilizes advanced satellite imagery and AI
+                        to monitor, analyze, and report air quality metrics across the nation in real-time.
+                    </p>
                 </div>
-                <div class="footer-col">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Use</a></li>
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-orange-400">Quick Links</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Use</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Accessibility Statement</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Open Data Portal</a></li>
                     </ul>
                 </div>
-                <div class="footer-col">
-                    <h4>Contact</h4>
-                    <p><i class="fas fa-envelope"></i> support@govpes.in</p>
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-orange-400">Contact Ministry</h4>
+                    <div class="space-y-3 text-sm text-gray-400">
+                        <p class="flex items-center gap-3"><i class="fas fa-envelope text-gray-500"></i>
+                            support@govpes.in</p>
+                        <p class="flex items-center gap-3"><i class="fas fa-phone text-gray-500"></i> 1800-11-2233 (Toll
+                            Free)</p>
+                        <p class="flex items-center gap-3"><i class="fas fa-map-marker-alt text-gray-500"></i>
+                            Paryavaran Bhawan, New Delhi</p>
+                    </div>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>© 2025 Government of PES. All rights reserved.</p>
-            </div>
+        </div>
+        <div class="bg-black py-4 text-center text-gray-600 text-xs">
+            <p>© 2025 Government of PES. All rights reserved. | <span class="text-gray-500">Jai Hind</span></p>
         </div>
     </footer>
+
     <script>
         document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'

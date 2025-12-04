@@ -10,6 +10,7 @@ import threading
 import sys
 from io import StringIO
 from src.agents.agents import run_satellite_crew
+import ee
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,6 +22,50 @@ app.secret_key = os.urandom(24)
 job_results = {}
 job_status = {}
 job_logs = {}  # Store detailed logs for each job
+
+# Initialize Earth Engine
+try:
+    project_id = os.getenv('EE_PROJECT_ID')
+    if project_id:
+        ee.Initialize(project=project_id)
+    else:
+        ee.Initialize(opt_url='https://earthengine-highvolume.googleapis.com')
+except Exception as e:
+    print(f"EE Init failed: {e}")
+
+def get_city_no2_stats(city_name, lat, lon):
+    """Fetch 30-day average NO2 data for a city"""
+    try:
+        roi = ee.Geometry.Point([lon, lat]).buffer(5000)
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        start_date = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+        
+        collection = ee.ImageCollection('COPERNICUS/S5P/OFFL/L3_NO2') \
+            .select('tropospheric_NO2_column_number_density') \
+            .filterBounds(roi) \
+            .filterDate(start_date, end_date)
+            
+        # Check if we have images
+        count = collection.size().getInfo()
+        if count == 0:
+            return 0
+            
+        image = collection.mean()
+        stats = image.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            geometry=roi,
+            scale=1000,
+            bestEffort=True
+        ).getInfo()
+        
+        val = stats.get('tropospheric_NO2_column_number_density')
+        if val:
+            # Convert to µg/m³ (approximate conversion factor)
+            return round(val * 46000, 2)
+        return 0
+    except Exception as e:
+        print(f"Error fetching stats for {city_name}: {e}")
+        return 0
 
 
 def run_agents_background(job_id, city, start_date, end_date, send_alerts, generate_reports):
@@ -227,31 +272,24 @@ def list_reports():
 
 @app.route('/dashboard')
 def dashboard():
-    """Dashboard page"""
-    # Get statistics
-    reports_dir = os.path.join(os.getcwd(), 'reports')
-    total_reports = 0
-    available_reports = []
+    """Dashboard page with city comparison"""
+    cities = [
+        {'name': 'Bengaluru', 'lat': 12.9716, 'lon': 77.5946},
+        {'name': 'Mumbai', 'lat': 19.0760, 'lon': 72.8777},
+        {'name': 'Delhi', 'lat': 28.6139, 'lon': 77.2090}
+    ]
     
-    if os.path.exists(reports_dir):
-        for filename in os.listdir(reports_dir):
-            if filename.endswith('.pdf'):
-                total_reports += 1
-                file_path = os.path.join(reports_dir, filename)
-                size_mb = round(os.path.getsize(file_path) / (1024 * 1024), 2)
-                available_reports.append({
-                    'filename': filename,
-                    'modified': datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d %H:%M:%S'),
-                    'size_mb': size_mb
-                })
+    city_data = []
+    for city in cities:
+        val = get_city_no2_stats(city['name'], city['lat'], city['lon'])
+        city_data.append({
+            'name': city['name'],
+            'lat': city['lat'],
+            'lon': city['lon'],
+            'value': val
+        })
     
-    return render_template('dashboard.html',
-                         total_operations=len(job_results),
-                         total_reports=total_reports,
-                         total_alerts=len(job_results),
-                         cities_monitored=len(set(r.get('city', '') for r in job_results.values())),
-                         recent_operations=[],
-                         available_reports=available_reports)
+    return render_template('dashboard.html', city_data=city_data)
 
 
 @app.route('/alerts')

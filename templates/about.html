@@ -8,196 +8,308 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gov: {
+                            primary: '#1a365d',
+                            secondary: '#2d3748',
+                            accent: '#ed8936'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
-<body class="gov-theme">
-    <header class="gov-header-enhanced">
-        <div class="gov-top-bar-enhanced">
-            <div class="container">
-                <div class="top-bar-content">
-                    <div class="header-left">
-                        <div class="logo-wrapper">
-                            <img src="{{ url_for('static', filename='images/government_pes_logo.png') }}"
-                                alt="Government of PES" class="gov-logo-enhanced">
-                            <div class="logo-glow"></div>
-                        </div>
-                        <div class="title-section">
-                            <h1 class="main-title">
-                                <span class="title-line-1">GOVERNMENT OF PES</span>
-                                <span class="title-line-2">Air Quality Intelligence System</span>
-                            </h1>
-                            <p class="ministry-tag"><i class="fas fa-building"></i> Ministry of Environment, Forest and
-                                Climate Change</p>
-                        </div>
-                    </div>
-                    <div class="header-right">
-                        <div class="date-display"><i class="fas fa-calendar-day"></i><span id="currentDate"></span>
-                        </div>
-                        <select class="lang-select">
-                            <option>English</option>
-                            <option>हिन्दी</option>
-                        </select>
-                    </div>
+<body class="bg-gray-50 font-['Poppins']">
+    <!-- Enhanced Government Header -->
+    <header class="bg-white shadow-md border-b-4 border-orange-500">
+        <div class="bg-gray-900 text-white py-2 text-xs">
+            <div class="container mx-auto px-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span class="flex items-center gap-2"><img src="https://flagcdn.com/w20/in.png" alt="India Flag"
+                            class="h-3"> Government of India</span>
+                    <span class="hidden md:inline">Ministry of Environment, Forest and Climate Change</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="currentDate"></span>
+                    <select class="bg-gray-800 border border-gray-700 rounded px-2 py-0.5 text-xs focus:outline-none">
+                        <option>English</option>
+                        <option>हिन्दी</option>
+                    </select>
                 </div>
             </div>
         </div>
-        <nav class="main-navigation">
-            <div class="container">
-                <ul class="nav-list">
-                    <li class="nav-item" onclick="window.location.href='/'"><i class="fas fa-home"></i> Home</li>
-                    <li class="nav-item" onclick="window.location.href='/dashboard'"><i class="fas fa-chart-line"></i>
-                        Dashboard</li>
-                    <li class="nav-item" onclick="window.location.href='/reports'"><i class="fas fa-file-alt"></i>
-                        Reports</li>
-                    <li class="nav-item" onclick="window.location.href='/alerts'"><i class="fas fa-bell"></i> Alerts
-                    </li>
-                    <li class="nav-item" onclick="window.location.href='/settings'"><i class="fas fa-cog"></i> Settings
-                    </li>
-                    <li class="nav-item active" onclick="window.location.href='/about'"><i
-                            class="fas fa-info-circle"></i> About</li>
+
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <img src="{{ url_for('static', filename='images/government_pes_logo.png') }}"
+                        alt="Government of PES" class="h-16 w-auto drop-shadow-md">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800 leading-tight">GOVERNMENT OF PES</h1>
+                        <p class="text-sm text-gray-600 font-medium tracking-wide">Air Quality Intelligence System</p>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" alt="Emblem"
+                        class="h-14 opacity-80">
+                </div>
+            </div>
+        </div>
+
+        <nav class="bg-gov-primary text-white shadow-inner">
+            <div class="container mx-auto px-4">
+                <ul class="flex flex-wrap gap-1">
+                    <li><a href="/" class="block px-6 py-3 hover:bg-white/10 transition-colors"><i
+                                class="fas fa-home mr-2"></i> Home</a></li>
+                    <li><a href="/dashboard" class="block px-6 py-3 hover:bg-white/10 transition-colors"><i
+                                class="fas fa-chart-line mr-2"></i> Dashboard</a></li>
+                    <li><a href="/reports" class="block px-6 py-3 hover:bg-white/10 transition-colors"><i
+                                class="fas fa-file-alt mr-2"></i> Reports</a></li>
+                    <li><a href="/alerts" class="block px-6 py-3 hover:bg-white/10 transition-colors"><i
+                                class="fas fa-bell mr-2"></i> Alerts</a></li>
+                    <li><a href="/settings" class="block px-6 py-3 hover:bg-white/10 transition-colors"><i
+                                class="fas fa-cog mr-2"></i> Settings</a></li>
+                    <li><a href="/about"
+                            class="block px-6 py-3 bg-white/20 font-semibold border-b-2 border-orange-400"><i
+                                class="fas fa-info-circle mr-2"></i> About</a></li>
                 </ul>
             </div>
         </nav>
     </header>
-    <div class="tricolor-strip">
-        <div class="color-band orange"></div>
-        <div class="color-band white"><span class="motto">ಸ್ವಚ್ಛವಾದ ಗಾಳಿ, ಸುರಕ್ಷಿತ ಭಾರತ</span></div>
-        <div class="color-band green"></div>
+
+    <!-- Tri-color Strip -->
+    <div class="h-12 flex w-full shadow-sm">
+        <div class="w-1/3 bg-[#FF9933]"></div>
+        <div class="w-1/3 bg-white flex items-center justify-center">
+            <span class="text-[#1a365d] font-bold text-sm md:text-base tracking-wide">ಸ್ವಚ್ಛವಾದ ಗಾಳಿ, ಸುರಕ್ಷಿತ
+                ಭಾರತ</span>
+        </div>
+        <div class="w-1/3 bg-[#138808]"></div>
     </div>
-    <div class="container main-content">
-        <section class="page-header-enhanced">
-            <h1 class="page-title-enhanced"><i class="fas fa-info-circle"></i> About the System</h1>
-            <p class="page-subtitle">Autonomous Air Pollution Regulatory System</p>
+
+    <div class="container mx-auto px-4 py-10">
+        <section class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4"><i class="fas fa-info-circle text-blue-600 mr-3"></i>
+                About the System</h1>
+            <p class="text-xl text-gray-600">Autonomous Air Pollution Regulatory System</p>
         </section>
-        <section class="about-overview-enhanced">
-            <div class="overview-card-large">
-                <h2>System Overview</h2>
-                <p>The Government of PES Air Quality Intelligence System is an advanced autonomous monitoring platform
-                    that leverages artificial intelligence, satellite data, and real-time analytics to monitor and
-                    report air pollution levels across India.</p>
-                <p>This system integrates cutting-edge technologies including Sentinel-5P satellite imagery, machine
-                    learning algorithms, and automated regulatory compliance reporting to provide comprehensive air
-                    quality monitoring and public health protection.</p>
+
+        <section class="mb-16">
+            <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">System Overview</h2>
+                <p class="text-gray-600 mb-4 leading-relaxed">The Government of PES Air Quality Intelligence System is
+                    an advanced autonomous monitoring platform that leverages artificial intelligence, satellite data,
+                    and real-time analytics to monitor and report air pollution levels across India.</p>
+                <p class="text-gray-600 leading-relaxed">This system integrates cutting-edge technologies including
+                    Sentinel-5P satellite imagery, machine learning algorithms, and automated regulatory compliance
+                    reporting to provide comprehensive air quality monitoring and public health protection.</p>
             </div>
         </section>
-        <section class="features-enhanced">
-            <h2 class="section-title-enhanced"><i class="fas fa-star"></i> Key Features</h2>
-            <div class="features-grid-enhanced">
-                <div class="feature-card-enhanced">
-                    <div class="feature-icon-large blue"><i class="fas fa-satellite"></i></div>
-                    <h3>Satellite Data Integration</h3>
-                    <p>Real-time NO₂ monitoring using Sentinel-5P satellite imagery via Google Earth Engine</p>
+
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3"><i
+                    class="fas fa-star text-yellow-500"></i> Key Features</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                    <div
+                        class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center text-blue-600 text-2xl mb-4">
+                        <i class="fas fa-satellite"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Satellite Data Integration</h3>
+                    <p class="text-sm text-gray-600">Real-time NO₂ monitoring using Sentinel-5P satellite imagery via
+                        Google Earth Engine</p>
                 </div>
-                <div class="feature-card-enhanced">
-                    <div class="feature-icon-large green"><i class="fas fa-brain"></i></div>
-                    <h3>AI-Powered Analysis</h3>
-                    <p>Machine learning algorithms for pollution level assessment and categorization</p>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                    <div
+                        class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center text-green-600 text-2xl mb-4">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">AI-Powered Analysis</h3>
+                    <p class="text-sm text-gray-600">Machine learning algorithms for pollution level assessment and
+                        categorization</p>
                 </div>
-                <div class="feature-card-enhanced">
-                    <div class="feature-icon-large orange"><i class="fas fa-file-contract"></i></div>
-                    <h3>Automated Reporting</h3>
-                    <p>CPCB and WHO compliant PDF reports generated automatically</p>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                    <div
+                        class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center text-orange-600 text-2xl mb-4">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Automated Reporting</h3>
+                    <p class="text-sm text-gray-600">CPCB and WHO compliant PDF reports generated automatically</p>
                 </div>
-                <div class="feature-card-enhanced">
-                    <div class="feature-icon-large purple"><i class="fas fa-bell"></i></div>
-                    <h3>Multi-Channel Alerts</h3>
-                    <p>Email and mobile push notifications for real-time health advisories</p>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                    <div
+                        class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center text-purple-600 text-2xl mb-4">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Multi-Channel Alerts</h3>
+                    <p class="text-sm text-gray-600">Email and mobile push notifications for real-time health advisories
+                    </p>
                 </div>
             </div>
         </section>
-        <section class="tech-stack-enhanced">
-            <h2 class="section-title-enhanced"><i class="fas fa-code"></i> Technology Stack</h2>
-            <div class="tech-grid-enhanced">
-                <div class="tech-item"><i class="fas fa-robot"></i> CrewAI Framework</div>
-                <div class="tech-item"><i class="fas fa-brain"></i> OpenAI GPT API</div>
-                <div class="tech-item"><i class="fas fa-satellite"></i> Google Earth Engine</div>
-                <div class="tech-item"><i class="fas fa-mobile-alt"></i> Pushover API</div>
-                <div class="tech-item"><i class="fas fa-envelope"></i> SMTP Email Service</div>
-                <div class="tech-item"><i class="fas fa-file-pdf"></i> ReportLab PDF Generation</div>
-                <div class="tech-item"><i class="fas fa-server"></i> Flask Web Framework</div>
-                <div class="tech-item"><i class="fas fa-python"></i> Python Backend</div>
+
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3"><i
+                    class="fas fa-code text-gray-600"></i> Technology Stack</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+                    <i class="fas fa-robot text-blue-500"></i> <span class="font-medium text-gray-700">CrewAI
+                        Framework</span>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+                    <i class="fas fa-brain text-purple-500"></i> <span class="font-medium text-gray-700">OpenAI GPT
+                        API</span>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+                    <i class="fas fa-satellite text-green-500"></i> <span class="font-medium text-gray-700">Google Earth
+                        Engine</span>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+                    <i class="fas fa-mobile-alt text-orange-500"></i> <span class="font-medium text-gray-700">Pushover
+                        API</span>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+                    <i class="fas fa-envelope text-red-500"></i> <span class="font-medium text-gray-700">SMTP Email
+                        Service</span>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+                    <i class="fas fa-file-pdf text-red-700"></i> <span class="font-medium text-gray-700">ReportLab
+                        PDF</span>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+                    <i class="fas fa-server text-gray-800"></i> <span class="font-medium text-gray-700">Flask
+                        Framework</span>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-3">
+                    <i class="fab fa-python text-blue-600"></i> <span class="font-medium text-gray-700">Python
+                        Backend</span>
+                </div>
             </div>
         </section>
-        <section class="standards-enhanced">
-            <h2 class="section-title-enhanced"><i class="fas fa-clipboard-check"></i> Air Quality Standards</h2>
-            <div class="standards-table-card">
-                <table class="data-table-enhanced">
+
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3"><i
+                    class="fas fa-clipboard-check text-green-600"></i> Air Quality Standards</h2>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>NO₂ Level (µg/m³)</th>
-                            <th>Health Impact</th>
-                            <th>Action</th>
+                        <tr class="bg-gray-50 border-b border-gray-200">
+                            <th class="p-4 font-bold text-gray-700">Category</th>
+                            <th class="p-4 font-bold text-gray-700">NO₂ Level (µg/m³)</th>
+                            <th class="p-4 font-bold text-gray-700">Health Impact</th>
+                            <th class="p-4 font-bold text-gray-700">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td><span class="table-badge good">Good</span></td>
-                            <td>0 - 40</td>
-                            <td>Minimal impact</td>
-                            <td>Normal activities</td>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-4"><span
+                                    class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold uppercase">Good</span>
+                            </td>
+                            <td class="p-4 text-gray-600">0 - 40</td>
+                            <td class="p-4 text-gray-600">Minimal impact</td>
+                            <td class="p-4 text-gray-600">Normal activities</td>
                         </tr>
-                        <tr>
-                            <td><span class="table-badge moderate">Moderate</span></td>
-                            <td>40 - 80</td>
-                            <td>Sensitive groups affected</td>
-                            <td>Limit outdoor exposure</td>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-4"><span
+                                    class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold uppercase">Moderate</span>
+                            </td>
+                            <td class="p-4 text-gray-600">40 - 80</td>
+                            <td class="p-4 text-gray-600">Sensitive groups affected</td>
+                            <td class="p-4 text-gray-600">Limit outdoor exposure</td>
                         </tr>
-                        <tr>
-                            <td><span class="table-badge poor">Poor</span></td>
-                            <td>80+</td>
-                            <td>General population affected</td>
-                            <td>Avoid outdoor activities</td>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-4"><span
+                                    class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-bold uppercase">Poor</span>
+                            </td>
+                            <td class="p-4 text-gray-600">80+</td>
+                            <td class="p-4 text-gray-600">General population affected</td>
+                            <td class="p-4 text-gray-600">Avoid outdoor activities</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
-        <section class="contact-enhanced">
-            <h2 class="section-title-enhanced"><i class="fas fa-phone"></i> Contact Information</h2>
-            <div class="contact-grid-enhanced">
-                <div class="contact-card-enhanced">
-                    <div class="contact-icon"><i class="fas fa-envelope"></i></div>
-                    <h3>Email Support</h3>
-                    <p>support@govpes.in</p>
+
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3"><i
+                    class="fas fa-phone text-blue-600"></i> Contact Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div
+                    class="bg-white p-6 rounded-xl shadow-md border border-gray-100 text-center hover:shadow-lg transition-shadow">
+                    <div
+                        class="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center text-blue-600 mx-auto mb-4">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 mb-2">Email Support</h3>
+                    <p class="text-gray-600">support@govpes.in</p>
                 </div>
-                <div class="contact-card-enhanced">
-                    <div class="contact-icon"><i class="fas fa-phone"></i></div>
-                    <h3>Helpline</h3>
-                    <p>1800-XXX-XXXX</p>
+                <div
+                    class="bg-white p-6 rounded-xl shadow-md border border-gray-100 text-center hover:shadow-lg transition-shadow">
+                    <div
+                        class="bg-green-50 w-12 h-12 rounded-full flex items-center justify-center text-green-600 mx-auto mb-4">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 mb-2">Helpline</h3>
+                    <p class="text-gray-600">1800-XXX-XXXX</p>
                 </div>
-                <div class="contact-card-enhanced">
-                    <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
-                    <h3>Address</h3>
-                    <p>Ministry of Environment<br>Government of PES</p>
+                <div
+                    class="bg-white p-6 rounded-xl shadow-md border border-gray-100 text-center hover:shadow-lg transition-shadow">
+                    <div
+                        class="bg-orange-50 w-12 h-12 rounded-full flex items-center justify-center text-orange-600 mx-auto mb-4">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 mb-2">Address</h3>
+                    <p class="text-gray-600">Ministry of Environment<br>Government of PES</p>
                 </div>
             </div>
         </section>
     </div>
-    <footer class="gov-footer-enhanced">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <h4>About</h4>
-                    <p>Autonomous Air Pollution Regulatory System by Government of PES</p>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-12 border-t-4 border-orange-500">
+        <div class="container mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-orange-400">About System</h4>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        The Autonomous Air Pollution Regulatory System utilizes advanced satellite imagery and AI
+                        to monitor, analyze, and report air quality metrics across the nation in real-time.
+                    </p>
                 </div>
-                <div class="footer-col">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Use</a></li>
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-orange-400">Quick Links</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Use</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Accessibility Statement</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Open Data Portal</a></li>
                     </ul>
                 </div>
-                <div class="footer-col">
-                    <h4>Contact</h4>
-                    <p><i class="fas fa-envelope"></i> support@govpes.in</p>
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-orange-400">Contact Ministry</h4>
+                    <div class="space-y-3 text-sm text-gray-400">
+                        <p class="flex items-center gap-3"><i class="fas fa-envelope text-gray-500"></i>
+                            support@govpes.in</p>
+                        <p class="flex items-center gap-3"><i class="fas fa-phone text-gray-500"></i> 1800-11-2233 (Toll
+                            Free)</p>
+                        <p class="flex items-center gap-3"><i class="fas fa-map-marker-alt text-gray-500"></i>
+                            Paryavaran Bhawan, New Delhi</p>
+                    </div>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>© 2025 Government of PES. All rights reserved.</p>
-            </div>
+        </div>
+        <div class="bg-black py-4 text-center text-gray-600 text-xs">
+            <p>© 2025 Government of PES. All rights reserved. | <span class="text-gray-500">Jai Hind</span></p>
         </div>
     </footer>
+
     <script>
         document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
