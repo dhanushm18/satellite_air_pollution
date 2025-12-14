@@ -33,4 +33,6 @@ dependencies = [
     "requests>=2.32.5",
     "reportlab>=4.4.5",
     "geopy>=2.4.1",
+    "pypdf>=6.4.1",
+    "docxtpl>=0.20.2",
 ]

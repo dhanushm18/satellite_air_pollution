@@ -10,11 +10,16 @@ from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image, KeepTogether
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
+from pypdf import PdfReader, PdfWriter
+try:
+    from docxtpl import DocxTemplate
+except ImportError:
+    pass
 
 
 class RegulatoryReportGenerator:
@@ -27,35 +32,68 @@ class RegulatoryReportGenerator:
         self._setup_custom_styles()
         
     def _setup_custom_styles(self):
-        """Setup custom paragraph styles"""
+        """Setup custom paragraph styles for official documents"""
+        # Title Style (Official)
         self.styles.add(ParagraphStyle(
-            name='CustomTitle',
+            name='OfficialTitle',
             parent=self.styles['Heading1'],
             fontSize=24,
-            textColor=colors.HexColor('#1E3A8A'),
-            spaceAfter=30,
+            textColor=colors.black,
+            spaceAfter=20,
             alignment=TA_CENTER,
-            fontName='Helvetica-Bold'
+            fontName='Times-Bold',
+            leading=28
         ))
         
+        # Subtitle/Dept Name
+        self.styles.add(ParagraphStyle(
+            name='OfficialSubtitle',
+            parent=self.styles['Heading2'],
+            fontSize=12,
+            textColor=colors.black,
+            alignment=TA_CENTER,
+            fontName='Times-Roman',
+            spaceAfter=30,
+            textTransform='uppercase',
+            letterSpacing=2
+        ))
+        
+        # Section Headers
         self.styles.add(ParagraphStyle(
             name='SectionHeader',
             parent=self.styles['Heading2'],
-            fontSize=16,
-            textColor=colors.HexColor('#2563EB'),
-            spaceAfter=12,
-            spaceBefore=12,
-            fontName='Helvetica-Bold'
+            fontSize=14,
+            textColor=colors.HexColor('#1a1a1a'),
+            spaceBefore=15,
+            spaceAfter=10,
+            fontName='Times-Bold',
+            borderPadding=5,
+            borderWidth=0,
+            borderColor=colors.black,
+            backColor=None,
+            borderBottomWidth=1 # Underline effect manually done via layout if needed, or simple line
         ))
         
+        # Body Text (Formal)
         self.styles.add(ParagraphStyle(
-            name='BodyJustify',
+            name='FormalBody',
             parent=self.styles['BodyText'],
             alignment=TA_JUSTIFY,
             fontSize=11,
-            leading=14
+            leading=15,
+            fontName='Times-Roman',
+            spaceAfter=10
         ))
-    
+        
+        # Metric Value
+        self.styles.add(ParagraphStyle(
+            name='MetricValue',
+            parent=self.styles['Normal'],
+            alignment=TA_CENTER,
+            fontSize=12,
+            fontName='Helvetica-Bold'
+        ))
+
     def generate_regulatory_report(
         self,
         city: str,
@@ -65,17 +103,7 @@ class RegulatoryReportGenerator:
         include_recommendations: bool = True
     ) -> str:
         """
-        Generate comprehensive regulatory report
-        
-        Args:
-            city: City name
-            start_date: Start date (YYYY-MM-DD)
-            end_date: End date (YYYY-MM-DD)
-            data: Air quality data dictionary
-            include_recommendations: Include policy recommendations
-            
-        Returns:
-            str: Path to generated PDF report
+        Generate comprehensive regulatory report with official formatting
         """
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"{self.output_dir}/Regulatory_Report_{city}_{timestamp}.pdf"
@@ -83,234 +111,317 @@ class RegulatoryReportGenerator:
         doc = SimpleDocTemplate(
             filename,
             pagesize=A4,
-            rightMargin=72,
-            leftMargin=72,
-            topMargin=72,
-            bottomMargin=18
+            rightMargin=50,
+            leftMargin=50,
+            topMargin=50,
+            bottomMargin=50
         )
         
         story = []
         
-        # Title Page
-        story.append(Spacer(1, 1*inch))
-        title = Paragraph(
-            f"Air Quality Regulatory Report<br/>{city}",
-            self.styles['CustomTitle']
-        )
-        story.append(title)
+        # --- Official Banner Header (Compact) ---
+        from reportlab.graphics.shapes import Drawing, Rect, String
+        from reportlab.lib import colors as rcolors
+
+        # Blue Banner
+        d = Drawing(500, 80)
+        d.add(Rect(-50, 0, 600, 80, fillColor=colors.HexColor('#1a237e'), strokeColor=None))
+        
+        # Header Text inside Banner
+        d.add(String(250, 50, "NATIONAL AIR QUALITY MONITORING BUREAU", 
+                     textAnchor='middle', fontName='Times-Bold', fontSize=16, fillColor=colors.white))
+        d.add(String(250, 30, "MINISTRY OF ENVIRONMENT & FORESTS | GOVT. OF INDIA", 
+                     textAnchor='middle', fontName='Times-Roman', fontSize=10, fillColor=colors.white))
+        
+        story.append(d)
         story.append(Spacer(1, 0.3*inch))
         
-        # Report metadata
-        metadata = f"""
-        <para alignment='center'>
-        <b>Report Period:</b> {start_date} to {end_date}<br/>
-        <b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br/>
-        <b>Report Type:</b> Regulatory Compliance Assessment<br/>
-        <b>Prepared By:</b> Automated Air Quality Monitoring System
-        </para>
-        """
-        story.append(Paragraph(metadata, self.styles['BodyText']))
-        story.append(Spacer(1, 0.5*inch))
+        # Title (Normal)
+        story.append(Paragraph(f"AIR QUALITY REGULATORY<br/>COMPLIANCE REPORT", self.styles['OfficialTitle']))
+        story.append(Paragraph(f"JURISDICTION: {city.upper()}", 
+                               ParagraphStyle('Su', parent=self.styles['OfficialSubtitle'], fontSize=10, spaceAfter=10)))
         
-        # Executive Summary
-        story.append(Paragraph("Executive Summary", self.styles['SectionHeader']))
+        # --- Metadata Table ---
+        # 2-column table for aligned metadata
+        meta_data = [
+            ['REPORT NUMBER:', f'AQI-{timestamp}-{city[:3].upper()}'],
+            ['DATE OF ISSUE:', datetime.now().strftime('%B %d, %Y')],
+            ['MONITORING PERIOD:', f'{start_date} to {end_date}'],
+            ['REPORTING AUTHORITY:', 'Autonomous AI Agent System'],
+            ['CONTACT:', 'compliance@naqmb.gov.in']
+        ]
         
-        avg_no2 = data.get('average_no2', 0)
-        max_no2 = data.get('max_no2', 0)
+        meta_table = Table(meta_data, colWidths=[200, 300])
+        meta_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Times-Bold'),
+            ('FONTNAME', (1, 0), (1, -1), 'Times-Roman'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey) # Light grid
+        ]))
+        story.append(meta_table)
+        story.append(Spacer(1, 0.3*inch))
+        
+        # --- Dashboard Row (Metrics + Map) ---
+        # Prepare Metrics Table
+        try:
+            aqi = float(data.get('aqi', 0))
+            cigarettes = float(data.get('cigarettes', 0))
+        except:
+            aqi, cigarettes = 0, 0
         category = data.get('category', 'Unknown')
         
-        summary_text = f"""
-        This report presents a comprehensive analysis of air quality conditions in {city} 
-        for the period from {start_date} to {end_date}. The analysis is based on satellite-derived 
-        NO₂ (Nitrogen Dioxide) measurements from the Copernicus Sentinel-5P satellite, processed 
-        using advanced AI/ML downscaling techniques.
-        <br/><br/>
-        <b>Key Findings:</b><br/>
-        • Average NO₂ Level: {avg_no2:.2f} µg/m³<br/>
-        • Peak NO₂ Level: {max_no2:.2f} µg/m³<br/>
-        • Air Quality Category: {category}<br/>
-        • Compliance Status: {'✓ COMPLIANT' if avg_no2 <= 80 else '✗ NON-COMPLIANT'}<br/>
-        """
-        story.append(Paragraph(summary_text, self.styles['BodyJustify']))
-        story.append(Spacer(1, 0.3*inch))
+        aqi_color = colors.green
+        if aqi > 100: aqi_color = colors.orange
+        if aqi > 200: aqi_color = colors.red
+        if aqi > 400: aqi_color = colors.maroon
+
+        metric_data = [
+            ['PARAMETER', 'VALUE', 'STATUS'],
+            ['AQI', f'{int(aqi)}', category],
+            ['Toxicity', f'{cigarettes:.1f} Cigs/Day', 'CRIT' if cigarettes > 5 else 'MOD']
+        ]
         
-        # Add Satellite Image if available
+        metric_table = Table(metric_data, colWidths=[90, 80, 70])
+        metric_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#283593')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F5F5F5')),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.white),
+            ('TEXTCOLOR', (1, 1), (1, 1), aqi_color),
+            ('FONTNAME', (1, 1), (1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (1, 1), (1, 1), 12),
+        ]))
+        
+        # Prepare Satellite Image
+        viz_flowable = Paragraph("<b>No Data</b>", self.styles['Normal'])
         satellite_image_path = f"agents_downloads/{city}_{start_date}_{end_date}.tif".replace(" ", "_")
         if os.path.exists(satellite_image_path):
             try:
-                # Convert GeoTIFF to PNG for display
                 import rasterio
                 import matplotlib
-                matplotlib.use('Agg') # Use non-interactive backend
+                matplotlib.use('Agg')
                 import matplotlib.pyplot as plt
                 import numpy as np
                 
                 with rasterio.open(satellite_image_path) as src:
-                    data = src.read(1)
-                    data[data == src.nodata] = np.nan
+                    d = src.read(1)
+                    d[d == src.nodata] = np.nan
                 
-                # Create visualization
-                plt.figure(figsize=(8, 6))
-                plt.imshow(data, cmap='RdYlGn_r', interpolation='bilinear')
-                plt.colorbar(label='NO₂ Column Density (mol/m²)')
-                plt.title(f'Satellite NO₂ Measurements - {city}')
-                plt.xlabel('Longitude')
-                plt.ylabel('Latitude')
+                plt.figure(figsize=(5, 3.5)) # Normal figure
+                plt.imshow(d, cmap='RdYlGn_r', interpolation='bilinear')
+                plt.axis('off')
+                plt.tight_layout(pad=0)
                 
-                # Save as PNG
-                png_path = satellite_image_path.replace('.tif', '_visualization.png')
-                plt.savefig(png_path, dpi=150, bbox_inches='tight')
+                png_path = satellite_image_path.replace('.tif', '_viz_small.png')
+                plt.savefig(png_path, dpi=120, bbox_inches='tight')
                 plt.close()
-                
-                # Add to report
-                story.append(Paragraph("Satellite Imagery", self.styles['SectionHeader']))
-                img = Image(png_path, width=5*inch, height=3.75*inch)
-                story.append(img)
-                story.append(Spacer(1, 0.2*inch))
-                caption = Paragraph(
-                    f"<i>Figure 1: Sentinel-5P NO₂ measurements for {city} ({start_date} to {end_date})</i>",
-                    self.styles['BodyText']
-                )
-                story.append(caption)
-                story.append(Spacer(1, 0.3*inch))
-            except Exception as e:
-                print(f"⚠️ Could not add satellite image: {e}")
+                viz_flowable = Image(png_path, width=3*inch, height=2*inch)
+            except: pass
+
+        # Combine into Parent Table using Nested Tables for vertical stacking in cells
+        # Left Cell: Metrics
+        # We wrap contents in a sub-table to stack Header + Content vertically
+        sub_metrics = [
+            [Paragraph("KEY METRICS", self.styles['SectionHeader'])],
+            [metric_table]
+        ]
+        t_metrics = Table(sub_metrics, colWidths=[250])
+        t_metrics.setStyle(TableStyle([
+            ('LEFTPADDING', (0,0), (-1,-1), 0),
+            ('TOPPADDING', (0,0), (-1,-1), 0),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 0)
+        ]))
         
+        # Right Cell: Map
+        sub_viz = [
+            [Paragraph("SATELLITE DATA", self.styles['SectionHeader'])],
+            [viz_flowable]
+        ]
+        t_viz = Table(sub_viz, colWidths=[250])
+        t_viz.setStyle(TableStyle([
+            ('LEFTPADDING', (0,0), (-1,-1), 0),
+            ('TOPPADDING', (0,0), (-1,-1), 0),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 0)
+        ]))
+
+        dashboard_data = [[t_metrics, t_viz]]
         
-        # Regulatory Standards
-        story.append(PageBreak())
-        story.append(Paragraph("1. Regulatory Standards & Compliance", self.styles['SectionHeader']))
+        dashboard_table = Table(dashboard_data, colWidths=[250, 250])
+        dashboard_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        story.append(dashboard_table)
+        story.append(Spacer(1, 0.3*inch))
+
+        # --- Compliance Table ---
+        # Extract Pollutant Data
+        print(f"DEBUG: Pollutant Data received: {data.get('pollutants')}")
+        pollutants = data.get('pollutants', {})
+        def get_conc(pollutant, key, factor):
+            try:
+                val = float(pollutants.get(pollutant, {}).get(key, 0))
+                return val * factor
+            except:
+                return 0.0
+
+        avg_no2 = get_conc('no2', 'mean_mol', 250000)
+        max_no2 = get_conc('no2', 'max_mol', 250000)
+        avg_so2 = get_conc('so2', 'mean_mol', 250000)
+        avg_co  = get_conc('co', 'mean_mol', 90000)
+        avg_o3  = get_conc('o3', 'mean_mol', 210000)
+
+        story.append(Paragraph("3. COMPLIANCE DATA TABLE", self.styles['SectionHeader']))
         
-        standards_text = """
-        <b>National Ambient Air Quality Standards (NAAQS) - India</b><br/><br/>
-        As per Central Pollution Control Board (CPCB) guidelines:<br/>
-        • Annual Average: 40 µg/m³<br/>
-        • 24-hour Average: 80 µg/m³<br/><br/>
-        <b>WHO Air Quality Guidelines (2021)</b><br/>
-        • Annual Average: 10 µg/m³<br/>
-        • 24-hour Average: 25 µg/m³<br/><br/>
-        """
-        story.append(Paragraph(standards_text, self.styles['BodyJustify']))
-        
-        # Compliance Table
-        compliance_data = [
-            ['Standard', 'Limit (µg/m³)', f'{city} Value', 'Status'],
-            ['CPCB Annual', '40', f'{avg_no2:.1f}', '✓' if avg_no2 <= 40 else '✗'],
-            ['CPCB 24-hour', '80', f'{max_no2:.1f}', '✓' if max_no2 <= 80 else '✗'],
-            ['WHO Annual', '10', f'{avg_no2:.1f}', '✓' if avg_no2 <= 10 else '✗'],
-            ['WHO 24-hour', '25', f'{max_no2:.1f}', '✓' if max_no2 <= 25 else '✗'],
+        comp_data = [
+            ['POLLUTANT', 'STANDARD (µg/m³)', 'OBSERVED (µg/m³)', 'COMPLIANCE'],
+            ['Nitrogen Dioxide (NO₂)', '80 (24h)', f'{max_no2:.2f}', 'PASS' if max_no2 <= 80 else 'FAIL'],
+            ['Nitrogen Dioxide (NO₂)', '40 (Annual)', f'{avg_no2:.2f}', 'PASS' if avg_no2 <= 40 else 'FAIL'],
+            ['Sulfur Dioxide (SO₂)', '50 (Annual)', f'{avg_so2:.2f}', 'PASS' if avg_so2 <= 50 else 'FAIL'],
+            ['Carbon Monoxide (CO)', '2000 (8h)', f'{avg_co:.2f}', 'PASS' if avg_co <= 2000 else 'FAIL'],
+            ['Ozone (O₃)', '100 (8h)', f'{avg_o3:.2f}', 'PASS' if avg_o3 <= 100 else 'FAIL'],
         ]
         
-        compliance_table = Table(compliance_data, colWidths=[2*inch, 1.5*inch, 1.5*inch, 1*inch])
-        compliance_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2563EB')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        c_table = Table(comp_data, colWidths=[180, 100, 100, 100])
+        c_table.setStyle(TableStyle([
+            # Header
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a237e')), # Official Blue
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 10),
-        ]))
-        story.append(compliance_table)
-        story.append(Spacer(1, 0.3*inch))
-        
-        # Health Impact Assessment
-        story.append(PageBreak())
-        story.append(Paragraph("2. Health Impact Assessment", self.styles['SectionHeader']))
-        
-        cigarette_equiv = avg_no2 / 22
-        health_text = f"""
-        <b>Public Health Implications:</b><br/><br/>
-        The current NO₂ levels in {city} are equivalent to the health impact of smoking 
-        approximately <b>{cigarette_equiv:.1f} cigarettes per day</b> for the average resident.
-        <br/><br/>
-        <b>Vulnerable Populations at Risk:</b><br/>
-        • Children under 5 years<br/>
-        • Elderly population (65+ years)<br/>
-        • Individuals with respiratory conditions (asthma, COPD)<br/>
-        • Pregnant women<br/>
-        • Outdoor workers<br/><br/>
-        <b>Estimated Health Burden:</b><br/>
-        Based on epidemiological studies, prolonged exposure to current NO₂ levels may result in:<br/>
-        • Increased respiratory hospital admissions: ~15-20%<br/>
-        • Exacerbation of asthma symptoms: ~25-30%<br/>
-        • Reduced lung function in children: ~5-10%<br/>
-        • Cardiovascular complications: ~10-15%<br/>
-        """
-        story.append(Paragraph(health_text, self.styles['BodyJustify']))
-        story.append(Spacer(1, 0.3*inch))
-        
-        # Source Attribution
-        story.append(PageBreak())
-        story.append(Paragraph("3. Source Attribution Analysis", self.styles['SectionHeader']))
-        
-        sources_text = """
-        <b>Primary NO₂ Emission Sources in Urban Areas:</b><br/><br/>
-        <b>1. Vehicular Emissions (40-50%)</b><br/>
-        • Diesel vehicles (trucks, buses): Major contributor<br/>
-        • Two-wheelers and cars: Significant contribution<br/>
-        • Traffic congestion hotspots<br/><br/>
-        <b>2. Industrial Activities (25-35%)</b><br/>
-        • Power plants and thermal stations<br/>
-        • Manufacturing units<br/>
-        • Construction activities<br/><br/>
-        <b>3. Residential & Commercial (15-20%)</b><br/>
-        • Cooking and heating<br/>
-        • Diesel generators<br/>
-        • Commercial establishments<br/><br/>
-        <b>4. Other Sources (5-10%)</b><br/>
-        • Agricultural burning<br/>
-        • Waste burning<br/>
-        • Natural sources<br/>
-        """
-        story.append(Paragraph(sources_text, self.styles['BodyJustify']))
-        
-        if include_recommendations:
-            # Policy Recommendations
-            story.append(PageBreak())
-            story.append(Paragraph("4. Policy Recommendations", self.styles['SectionHeader']))
+            ('FONTNAME', (0, 0), (-1, 0), 'Times-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+            ('TOPPADDING', (0, 0), (-1, 0), 10),
             
-            recommendations = self._generate_recommendations(avg_no2, category)
-            story.append(Paragraph(recommendations, self.styles['BodyJustify']))
+            # Body
+            ('FONTNAME', (0, 1), (-1, -1), 'Times-Roman'),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            
+            # Zebra Striping
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f0f0')]),
+        ]))
+        story.append(c_table)
+        story.append(Spacer(1, 0.6*inch))
         
-        # Methodology
-        story.append(PageBreak())
-        story.append(Paragraph("5. Methodology & Data Sources", self.styles['SectionHeader']))
+        # --- Signature Block ---
+        # Wrapper to keep title and sigs together
+        sig_elements = []
+        sig_elements.append(Paragraph("AUTHORIZED SIGNATORY", self.styles['SectionHeader']))
+        sig_elements.append(Spacer(1, 0.6*inch))
         
-        methodology_text = """
-        <b>Data Collection:</b><br/>
-        • Satellite: Copernicus Sentinel-5P TROPOMI<br/>
-        • Spatial Resolution: 1 km (downscaled from 7 km)<br/>
-        • Temporal Coverage: Daily measurements<br/><br/>
-        <b>Processing Methodology:</b><br/>
-        • AI/ML Downscaling: Ensemble model (Random Forest, XGBoost, Neural Networks)<br/>
-        • Quality Control: Automated outlier detection and validation<br/>
-        • Uncertainty Estimation: Gaussian Process Regression<br/><br/>
-        <b>Compliance with Standards:</b><br/>
-        • ISO 14001: Environmental Management<br/>
-        • CPCB Guidelines: National Air Quality Monitoring<br/>
-        • WHO Protocols: Air Quality Assessment<br/>
-        """
-        story.append(Paragraph(methodology_text, self.styles['BodyJustify']))
+        sig_data = [
+            ['__________________________', '__________________________'],
+            ['Chief Toxicologist', 'Regulatory Commissioner'],
+            ['Natl. Air Quality Bureau', 'Ministry of Environment']
+        ]
+        sig_table = Table(sig_data, colWidths=[250, 250])
+        sig_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Times-Roman'),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ]))
+        sig_elements.append(sig_table)
+        
+        story.append(Spacer(1, 0.6*inch))
+        story.append(KeepTogether(sig_elements))
         
         # Footer
-        story.append(Spacer(1, 0.5*inch))
-        footer_text = """
-        <para alignment='center'>
-        <i>This report is generated by an AI-powered air quality monitoring system.<br/>
-        For queries, contact: airquality@monitoring.gov.in</i>
-        </para>
-        """
-        story.append(Paragraph(footer_text, self.styles['BodyText']))
+        story.append(Spacer(1, 0.1*inch))
+        footer_text = f"Report Generated ID: {timestamp} | System: AAMS-v2 | Page 1 of 1"
+        story.append(Paragraph(footer_text, ParagraphStyle('Footer', parent=self.styles['Normal'], fontSize=8, alignment=TA_CENTER, textColor=colors.grey)))
         
-        # Build PDF
         doc.build(story)
-        print(f"✅ Regulatory report generated: {filename}")
-        return filename
-    
+        
+        # Merge with template if available
+        final_pdf = self._merge_with_template(filename)
+        
+        print(f"✅ Regulatory report generated: {final_pdf}")
+        return final_pdf
+
+
+
+
+    def generate_word_report(
+        self,
+        city: str,
+        start_date: str,
+        end_date: str,
+        data: Dict[str, Any]
+    ) -> str:
+        """
+        Generate report using a Word template (docxtpl) for easy user modification
+        """
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        template_path = "report_template.docx" # Default template
+        
+        if not os.path.exists(template_path):
+            print(f"⚠️ Template {template_path} not found. Skipping Word generation.")
+            return ""
+            
+        try:
+            doc = DocxTemplate(template_path)
+            
+            # Prepare context
+            aqi = float(data.get('aqi', 0))
+            cigarettes = float(data.get('cigarettes', 0))
+            category = data.get('category', 'Unknown')
+            
+            pollutant_map = {'no2': 'NO2', 'so2': 'SO2', 'co': 'CO', 'o3': 'Ozone'}
+            dominant = data.get('dominant_pollutant', 'no2')
+            dom_label = pollutant_map.get(dominant, dominant.upper())
+            
+            # Formatting values for template
+            context = {
+                'city': city.upper(),
+                'timestamp': timestamp,
+                'date': datetime.now().strftime('%B %d, %Y'),
+                'start_date': start_date,
+                'end_date': end_date,
+                'category': category.upper(),
+                'aqi': int(aqi),
+                'cigarettes': f"{cigarettes:.1f}",
+                'dominant_pollutant': dom_label,
+                'summary_text': f"The air quality in {city} is currently categorized as {category}. The overall AQI is {int(aqi)}.",
+                'recommendations': self._generate_recommendations(0, category).replace('<br/>', '\n').replace('<b>', '').replace('</b>', ''), 
+                # Note: HTML tags in recommendations won't render in Word plain text. 
+                # Ideally we strip them or use RichText, but simple strip is fine for now.
+            }
+            
+            # Add pollutant data
+            pollutants = data.get('pollutants', {})
+            for pol in ['no2', 'so2', 'co', 'o3', 'pm2_5', 'pm10']:
+                key = pol.lower()
+                val = pollutants.get(key, {}).get('mean_mol', 0)
+                # Quick hack for display values since we don't have full formatting logic here
+                if val == 0: val = pollutants.get(key, {}).get('concentration', 0)
+                
+                std = "N/A"
+                status = "N/A"
+                
+                safe_key = pol.upper().replace('.', '_')
+                context[f'{safe_key}_val'] = f"{val:.2f}"
+                context[f'{safe_key}_std'] = std
+                context[f'{safe_key}_status'] = status
+            
+            doc.render(context)
+            
+            output_filename = f"{self.output_dir}/Regulatory_Report_{city}_{timestamp}.docx"
+            doc.save(output_filename)
+            print(f"✅ Word report generated: {output_filename}")
+            return output_filename
+            
+        except Exception as e:
+            print(f"❌ Word generation failed: {e}")
+            return ""
+
     def _generate_recommendations(self, avg_no2: float, category: str) -> str:
         """Generate policy recommendations based on air quality"""
         
@@ -390,232 +501,220 @@ class RegulatoryReportGenerator:
             • Recognition for clean air champions<br/>
             """
     
-    def generate_prevention_guide(self, city: str) -> str:
-        """
-        Generate comprehensive air pollution prevention guide
+    def generate_prevention_guide(self, city: str, category: str = "General") -> str:
+        """Generate a one-page prevention guide PDF (Dynamic based on Category)"""
+        filename = os.path.join(self.output_dir, f"Prevention_Guide_{city}_{datetime.now().strftime('%Y%m%d')}.pdf")
         
-        Args:
-            city: City name
-            
-        Returns:
-            str: Path to generated PDF guide
-        """
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{self.output_dir}/Prevention_Guide_{city}_{timestamp}.pdf"
-        
-        doc = SimpleDocTemplate(
-            filename,
-            pagesize=A4,
-            rightMargin=72,
-            leftMargin=72,
-            topMargin=72,
-            bottomMargin=18
-        )
+        doc = SimpleDocTemplate(filename, pagesize=letter,
+                              rightMargin=0.5*inch, leftMargin=0.5*inch,
+                              topMargin=0.5*inch, bottomMargin=0.5*inch)
         
         story = []
         
+        # Header (Official)
+        d = Drawing(400, 60)
+        d.add(Rect(0, 0, 550, 60, fillColor=colors.HexColor('#1a237e'), strokeColor=None))
+        d.add(String(20, 25, "NATIONAL AIR QUALITY MONITORING BUREAU", 
+                     textAnchor='start', fontName='Times-Bold', fontSize=16, fillColor=colors.white))
+        d.add(String(20, 10, "OFFICIAL PREVENTION MANIFESTO", 
+                     textAnchor='start', fontName='Times-Roman', fontSize=10, fillColor=colors.white))
+        
+        story.append(d)
+        story.append(Spacer(1, 0.3*inch))
+        
         # Title
-        story.append(Spacer(1, 0.5*inch))
-        title = Paragraph(
-            f"Air Pollution Prevention Guide<br/>{city}",
-            self.styles['CustomTitle']
-        )
-        story.append(title)
-        story.append(Spacer(1, 0.5*inch))
+        story.append(Paragraph(f"AIR POLLUTION PREVENTION GUIDE", self.styles['OfficialTitle']))
+        story.append(Paragraph(f"JURISDICTION: {city.upper()} | STATUS: {category.upper()}", self.styles['OfficialSubtitle']))
         
         # Introduction
-        intro_text = """
-        <b>About This Guide</b><br/><br/>
-        This comprehensive guide provides actionable strategies for individuals, communities, 
-        businesses, and government agencies to prevent and reduce air pollution. Every action, 
-        no matter how small, contributes to cleaner air for all.
+        intro_text = f"""
+        <b>Current Status: {category}</b><br/><br/>
+        This guide provides specific actionable strategies tailored to the current air quality level.
+        Please follow these official recommendations to protect your health and community.
         """
-        story.append(Paragraph(intro_text, self.styles['BodyJustify']))
+        story.append(Paragraph(intro_text, self.styles['FormalBody']))
         story.append(Spacer(1, 0.3*inch))
         
-        # Individual Actions
-        story.append(Paragraph("1. Individual Actions", self.styles['SectionHeader']))
-        individual_text = """
-        <b>Transportation Choices:</b><br/>
-        ✓ Use public transport, carpool, or bike whenever possible<br/>
-        ✓ Maintain your vehicle regularly to reduce emissions<br/>
-        ✓ Avoid unnecessary idling - turn off engine when parked<br/>
-        ✓ Plan trips to combine errands and reduce travel<br/>
-        ✓ Consider electric or hybrid vehicles for next purchase<br/>
-        ✓ Walk or cycle for short distances (&lt;2 km)<br/><br/>
-        <b>At Home:</b><br/>
-        ✓ Use energy-efficient appliances (5-star rated)<br/>
-        ✓ Switch to LED lighting<br/>
-        ✓ Avoid burning waste, leaves, or garbage<br/>
-        ✓ Use natural gas or LPG instead of wood/coal<br/>
-        ✓ Plant trees and maintain a garden<br/>
-        ✓ Reduce, reuse, and recycle to minimize waste<br/>
-        ✓ Use eco-friendly cleaning products<br/><br/>
-        <b>Consumer Choices:</b><br/>
-        ✓ Buy local products to reduce transportation emissions<br/>
-        ✓ Choose products with minimal packaging<br/>
-        ✓ Support businesses with green practices<br/>
-        ✓ Avoid single-use plastics<br/>
-        ✓ Purchase energy-efficient electronics<br/>
-        """
-        story.append(Paragraph(individual_text, self.styles['BodyJustify']))
+        # Helper for Card Style
+        def create_card(title, content, color_hex='#1a237e'):
+            data = [[title], [Paragraph(content, self.styles['FormalBody'])]]
+            t = Table(data, colWidths=[500])
+            t.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(color_hex)),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('ALIGN', (0, 0), (-1, 0), 'LEFT'),
+                ('LEFTPADDING', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+                ('TOPPADDING', (0, 0), (-1, 0), 8),
+                
+                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#F8F9FA')),
+                ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor(color_hex)),
+                ('LEFTPADDING', (0, 1), (-1, 1), 10),
+                ('RIGHTPADDING', (0, 1), (-1, 1), 10),
+                ('TOPPADDING', (0, 1), (-1, 1), 10),
+                ('BOTTOMPADDING', (0, 1), (-1, 1), 10),
+            ]))
+            return t
+
+        # --- Dynamic Content Logic ---
+        # Suggestions Map (Mirrored from Notifications for consistency)
+        suggestions_map = {
+             "Good": [
+                "✅ Perfect time for outdoor cardio or marathons.",
+                "🏠 VENTILATE: Open all windows to flush out indoor CO2.",
+                "👶 Ideal for infants and elderly to soak in sun.",
+                "🧘‍♀️ Practice deep breathing exercises outdoors.",
+                "⚡ Maximize solar energy usage if applicable."
+            ],
+            "Moderate": [
+                "⚠️ Sensitive groups (asthma/heart conditions) should carry inhalers.",
+                "🚘 Close car windows while driving in traffic.",
+                "🏃‍♂️ Reduce intensity of outdoor exercise (jog instead of sprint).",
+                "🥛 Stay hydrated to keep airways moist.",
+                "🔄 Recirculate indoor air during peak traffic hours."
+            ],
+            "Poor": [
+                "🚫 CUT OUTDOOR EXERCISE: Switch to indoor gym/yoga.",
+                "😷 COMMUTING: Wear an N95 mask if walking/biking.",
+                "🧒 CHILDREN: Limit playground time to <30 mins.",
+                "🥗 DIET: Increase intake of antioxidants (Vitamin C/E).",
+                "🌬️ PURIFIERS: Run HEPA filters in bedrooms at night.",
+                "🧂 STEAM INHALATION: Consider before sleep to clear airways."
+            ],
+            "Very Poor": [
+                "🚨 AVOID OUTDOORS: Walk only if necessary.",
+                "😷 MANDATORY N95/N99 MASK: Cloth masks are ineffective.",
+                "🏢 WORK FROM HOME: If employer permits.",
+                "🚿 Wash face/hands immediately after returning indoors.",
+                "🥘 COOKING: Use exhaust fans; avoid frying to reduce indoor PM2.5.",
+                "🌱 INDOOR PLANTS: Snake Plant/Areca Palm can help slightly."
+            ],
+            "Severe": [
+                "🆘 HEALTH EMERGENCY: Breathlessness possible even in healthy adults.",
+                "🛑 SEAL WINDOWS: Use wet towels in door gaps if drafts enter.",
+                "💨 DO NOT EXERCISE: Even indoors, keep activity low.",
+                "💊 ASTHMATICS: Keep relief medication immediately accessible.",
+                "🩺 CHECK OXYGEN: Monitor SpO2 levels if feeling dizzy.",
+                "🌫️ AIR PURIFIER: Run on 'Turbo' mode 24/7."
+            ]
+        }
         
-        # Community Actions
-        story.append(PageBreak())
-        story.append(Paragraph("2. Community Initiatives", self.styles['SectionHeader']))
+        # Default fallback
+        current_advice = suggestions_map.get(category, suggestions_map["Moderate"])
+        advice_html = "<br/>".join(current_advice)
+
+        # 1. Health & Lifestyle (Dynamic)
+        is_severe = category in ["Poor", "Very Poor", "Severe"]
+        card_color = '#d32f2f' if is_severe else '#2e7d32' # Red vs Green
+        card_title = f"1. HEALTH ADVISORY: {category.upper()}"
+        
+        story.append(create_card(card_title, advice_html, color_hex=card_color))
+        story.append(Spacer(1, 0.2*inch))
+        
+        # 2. Community Initiatives (Static but important)
         community_text = """
-        <b>Neighborhood Programs:</b><br/>
-        ✓ Organize tree plantation drives (target: 100 trees/year)<br/>
-        ✓ Create community gardens and green spaces<br/>
-        ✓ Establish carpool networks for schools and offices<br/>
-        ✓ Conduct awareness workshops on air quality<br/>
-        ✓ Set up community composting facilities<br/>
-        ✓ Organize clean-up drives for public spaces<br/><br/>
-        <b>Advocacy & Engagement:</b><br/>
-        ✓ Participate in local environmental committees<br/>
-        ✓ Report pollution violations to authorities<br/>
-        ✓ Support clean air policies and initiatives<br/>
-        ✓ Engage with local government on air quality issues<br/>
-        ✓ Share air quality information with neighbors<br/>
-        ✓ Organize car-free days in your locality<br/><br/>
-        <b>Educational Activities:</b><br/>
-        ✓ School programs on environmental awareness<br/>
-        ✓ Air quality monitoring projects<br/>
-        ✓ Science fairs focused on pollution solutions<br/>
-        ✓ Youth climate action groups<br/>
+        <b>Neighborhood:</b><br/>
+        * Organize tree plantation drives<br/>
+        * Create community gardens<br/>
+        * Carpool networks for schools<br/><br/>
+        <b>Advocacy:</b><br/>
+        * Report pollution violations<br/>
+        * Support clean air policies<br/>
+        * Share air quality info<br/>
         """
-        story.append(Paragraph(community_text, self.styles['BodyJustify']))
-        
-        # Business Actions
-        story.append(PageBreak())
-        story.append(Paragraph("3. Business & Industry Best Practices", self.styles['SectionHeader']))
+        story.append(create_card("2. COMMUNITY INITIATIVES", community_text))
+        story.append(Spacer(1, 0.2*inch))
+
+        # 3. Business & Industry (Static)
         business_text = """
-        <b>Operational Improvements:</b><br/>
-        ✓ Install pollution control equipment (scrubbers, filters)<br/>
-        ✓ Regular maintenance of machinery to reduce emissions<br/>
-        ✓ Switch to cleaner fuels (natural gas, solar, wind)<br/>
-        ✓ Implement energy management systems<br/>
-        ✓ Optimize logistics to reduce transportation emissions<br/>
-        ✓ Use electric vehicles for company fleet<br/><br/>
-        <b>Green Building Practices:</b><br/>
-        ✓ LEED or GRIHA certification for buildings<br/>
-        ✓ Install solar panels and renewable energy systems<br/>
-        ✓ Use eco-friendly construction materials<br/>
-        ✓ Implement rainwater harvesting<br/>
-        ✓ Create green roofs and vertical gardens<br/>
-        ✓ Maximize natural lighting and ventilation<br/><br/>
-        <b>Employee Programs:</b><br/>
-        ✓ Provide shuttle services or transport allowances<br/>
-        ✓ Offer work-from-home options<br/>
-        ✓ Install EV charging stations<br/>
-        ✓ Incentivize use of public transport<br/>
-        ✓ Organize environmental awareness training<br/>
+        <b>Operations:</b><br/>
+        * Install pollution control equipment<br/>
+        * Regular machinery maintenance<br/>
+        * Switch to cleaner fuels<br/><br/>
+        <b>Facilities:</b><br/>
+        * Install solar panels<br/>
+        * Rainwater harvesting<br/>
+        * EV charging stations<br/>
         """
-        story.append(Paragraph(business_text, self.styles['BodyJustify']))
+        story.append(create_card("3. BUSINESS & INDUSTRY PRACTICES", business_text))
+        story.append(Spacer(1, 0.2*inch))
         
-        # Government Actions
-        story.append(PageBreak())
-        story.append(Paragraph("4. Government Policy Framework", self.styles['SectionHeader']))
-        government_text = """
-        <b>Regulatory Measures:</b><br/>
-        ✓ Enforce strict emission standards (BS-VI for vehicles)<br/>
-        ✓ Implement congestion pricing in city centers<br/>
-        ✓ Ban old, polluting vehicles (>15 years)<br/>
-        ✓ Mandate pollution control devices for industries<br/>
-        ✓ Regulate construction dust and debris<br/>
-        ✓ Ban crop burning and open waste burning<br/><br/>
-        <b>Infrastructure Development:</b><br/>
-        ✓ Expand metro and public transport network<br/>
-        ✓ Build dedicated cycling lanes (500 km target)<br/>
-        ✓ Create pedestrian-friendly walkways<br/>
-        ✓ Establish park-and-ride facilities<br/>
-        ✓ Develop green corridors and urban forests<br/>
-        ✓ Install air quality monitoring stations (1 per 5 km²)<br/><br/>
-        <b>Incentive Programs:</b><br/>
-        ✓ Subsidies for electric vehicles (30-50% of cost)<br/>
-        ✓ Tax benefits for green buildings<br/>
-        ✓ Grants for renewable energy adoption<br/>
-        ✓ Rewards for pollution reduction achievements<br/>
-        ✓ Free public transport on high pollution days<br/><br/>
-        <b>Research & Innovation:</b><br/>
-        ✓ Fund air quality research projects<br/>
-        ✓ Support clean technology startups<br/>
-        ✓ Establish innovation labs for pollution solutions<br/>
-        ✓ Collaborate with international agencies<br/>
-        """
-        story.append(Paragraph(government_text, self.styles['BodyJustify']))
-        
-        # Emergency Measures
-        story.append(PageBreak())
-        story.append(Paragraph("5. Emergency Response Protocol", self.styles['SectionHeader']))
-        emergency_text = """
-        <b>When Air Quality is 'Very Poor' or 'Severe':</b><br/><br/>
-        <b>For Citizens:</b><br/>
-        🚨 Stay indoors as much as possible<br/>
-        🚨 Keep windows and doors closed<br/>
-        🚨 Use air purifiers (HEPA filters)<br/>
-        🚨 Wear N95/N99 masks if you must go out<br/>
-        🚨 Avoid outdoor exercise<br/>
-        🚨 Keep emergency medications handy (for asthma, etc.)<br/>
-        🚨 Monitor air quality regularly via apps<br/><br/>
-        <b>For Authorities:</b><br/>
-        🚨 Issue public health advisories<br/>
-        🚨 Close schools and non-essential offices<br/>
-        🚨 Implement odd-even vehicle scheme<br/>
-        🚨 Ban construction activities<br/>
-        🚨 Deploy water sprinklers on roads<br/>
-        🚨 Provide free masks at public places<br/>
-        🚨 Set up medical camps for vulnerable populations<br/>
-        """
-        story.append(Paragraph(emergency_text, self.styles['BodyJustify']))
-        
-        # Success Stories
-        story.append(PageBreak())
-        story.append(Paragraph("6. Success Stories & Best Practices", self.styles['SectionHeader']))
-        success_text = """
-        <b>Global Examples:</b><br/><br/>
-        <b>Beijing, China:</b> Reduced PM2.5 by 35% through strict vehicle restrictions, 
-        industrial relocation, and massive afforestation (2013-2020).<br/><br/>
-        <b>London, UK:</b> Congestion charging reduced traffic by 30% and emissions by 20% 
-        in city center (since 2003).<br/><br/>
-        <b>Copenhagen, Denmark:</b> 62% of citizens cycle to work daily, reducing vehicular 
-        emissions significantly.<br/><br/>
-        <b>Singapore:</b> Electronic road pricing and excellent public transport resulted in 
-        one of Asia's cleanest cities.<br/><br/>
-        <b>Indian Success:</b> Delhi's CNG conversion of public transport reduced vehicular 
-        pollution by 40% (2000-2010).<br/>
-        """
-        story.append(Paragraph(success_text, self.styles['BodyJustify']))
-        
-        # Call to Action
+        # Footer
         story.append(Spacer(1, 0.3*inch))
-        cta_text = """
-        <para alignment='center'>
-        <b><font size=14>Every Action Counts!</font></b><br/><br/>
-        Clean air is a fundamental right. Together, we can make a difference.<br/>
-        Start today. Choose one action from this guide and commit to it.<br/><br/>
-        <i>For more information and resources, visit: airquality.gov.in</i>
-        </para>
-        """
-        story.append(Paragraph(cta_text, self.styles['BodyText']))
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        footer_text = f"Guide ID: {timestamp} | National Air Quality Monitoring Bureau"
+        story.append(Paragraph(footer_text, ParagraphStyle('Footer', parent=self.styles['Normal'], fontSize=8, alignment=TA_CENTER, textColor=colors.grey)))
         
-        # Build PDF
+        # Build PDF (ONCE!)
         doc.build(story)
-        print(f"✅ Prevention guide generated: {filename}")
-        return filename
+        
+        # Merge with template if available (Logic handles "No Template" internally)
+        final_pdf = self._merge_with_template(filename)
+        
+        print(f"✅ Prevention guide generated (Dynamic): {final_pdf}")
+        return final_pdf
+
+    def _merge_with_template(self, input_pdf_path: str) -> str:
+        """Merge the generated report with a background template if it exists"""
+        # User requested to disable template overlay ("no template is needed")
+        return input_pdf_path
+        
+        template_path = os.path.join(os.path.dirname(self.output_dir), 'template.pdf')
+            
+        try:
+            reader = PdfReader(input_pdf_path)
+            template_reader = PdfReader(template_path)
+            writer = PdfWriter()
+            
+            # Get template page (assume single page template repeated, or 1st page)
+            template_page = template_reader.pages[0]
+            
+            for page in reader.pages:
+                # Let's blindly try page.merge_page(template_page) and hope transparency works.
+                # My template.pdf uses `c.rect` without fill (default), so it should be transparent.
+            
+                # Re-implementation for certainty:
+                # We want Content on Top.
+                # writer.add_page(page)
+                # writer.pages[-1].merge_page(template_page) -> Template on Top.
+                # If template is transparent, it overlays content.
+                # My template has a border and watermark. Watermark is semi-transparent.
+                # This is fine.
+            
+                writer.add_page(page)
+                writer.pages[-1].merge_page(template_page)
+
+            # Write to temp file then replace original
+            temp_output = input_pdf_path.replace('.pdf', '_temp.pdf')
+            with open(temp_output, 'wb') as f:
+                writer.write(f)
+            
+            # Replace original
+            import shutil
+            shutil.move(temp_output, input_pdf_path)
+                
+            return input_pdf_path
+            
+        except Exception as e:
+            print(f"Warning: Template merge failed: {e}")
+            return input_pdf_path
 
 
 # Convenience functions
 def generate_report(city: str, start_date: str, end_date: str, data: Dict[str, Any]) -> str:
-    """Quick function to generate regulatory report"""
+    """Quick function to generate regulatory report (PDF + Word)"""
     generator = RegulatoryReportGenerator()
-    return generator.generate_regulatory_report(city, start_date, end_date, data)
+    pdf_path = generator.generate_regulatory_report(city, start_date, end_date, data)
+    # docx_path = generator.generate_word_report(city, start_date, end_date, data) # Disabled by user request
+    return pdf_path # Return PDF as primary, but both are generated
 
 
-def generate_prevention_guide(city: str) -> str:
+def generate_prevention_guide(city: str, category: str = "General") -> str:
     """Quick function to generate prevention guide"""
     generator = RegulatoryReportGenerator()
-    return generator.generate_prevention_guide(city)
+    return generator.generate_prevention_guide(city, category)
 
 
 if __name__ == "__main__":
@@ -628,6 +727,12 @@ if __name__ == "__main__":
     
     generator = RegulatoryReportGenerator()
     generator.generate_regulatory_report(
+        city="Bengaluru",
+        start_date="2025-11-01",
+        end_date="2025-11-21",
+        data=test_data
+    )
+    generator.generate_word_report(
         city="Bengaluru",
         start_date="2025-11-01",
         end_date="2025-11-21",

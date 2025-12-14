@@ -8,6 +8,7 @@ import os
 import uuid
 import threading
 import sys
+import requests
 from io import StringIO
 from src.agents.agents import run_satellite_crew
 import ee
@@ -33,36 +34,100 @@ try:
 except Exception as e:
     print(f"EE Init failed: {e}")
 
-def get_city_no2_stats(city_name, lat, lon):
-    """Fetch 30-day average NO2 data for a city"""
+def get_city_stats_summary(city_name, lat, lon):
+    """Fetch 30-day stats for all pollutants and return AQI"""
     try:
         roi = ee.Geometry.Point([lon, lat]).buffer(5000)
         end_date = datetime.now().strftime('%Y-%m-%d')
         start_date = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
         
-        collection = ee.ImageCollection('COPERNICUS/S5P/OFFL/L3_NO2') \
-            .select('tropospheric_NO2_column_number_density') \
-            .filterBounds(roi) \
-            .filterDate(start_date, end_date)
-            
-        # Check if we have images
-        count = collection.size().getInfo()
-        if count == 0:
-            return 0
-            
-        image = collection.mean()
-        stats = image.reduceRegion(
-            reducer=ee.Reducer.mean(),
-            geometry=roi,
-            scale=1000,
-            bestEffort=True
-        ).getInfo()
+        def get_val(collection, band, scale_factor):
+            try:
+                coll = ee.ImageCollection(collection).select(band).filterBounds(roi).filterDate(start_date, end_date)
+                if coll.size().getInfo() == 0: return 0
+                val = coll.max().reduceRegion(ee.Reducer.mean(), roi, 1000).get(band).getInfo()
+                return val * scale_factor if val else 0
+            except: return 0
+
+        # Fetch and scale to surface ug/m3 approx (Calibrated Factors)
+        no2 = get_val('COPERNICUS/S5P/OFFL/L3_NO2', 'tropospheric_NO2_column_number_density', 750000)
+        so2 = get_val('COPERNICUS/S5P/OFFL/L3_SO2', 'SO2_column_number_density', 300000)
+        co  = get_val('COPERNICUS/S5P/OFFL/L3_CO', 'CO_column_number_density', 400000)
+        o3  = get_val('COPERNICUS/S5P/OFFL/L3_O3_TCL', 'ozone_tropospheric_vertical_column', 250000)
         
-        val = stats.get('tropospheric_NO2_column_number_density')
-        if val:
-            # Convert to µg/m³ (Assuming effective mixing height of ~230m)
-            return round(val * 200000, 2)
-        return 0
+        # Rigorous AQI Calc (Piecewise Linear Interpolation)
+        def calc_sub_aqi(Cp, breakpoints):
+             """
+             Ip = [ (I_high - I_low) / (C_high - C_low) ] * (Cp - C_low) + I_low
+             """
+             for i in range(len(breakpoints) - 1):
+                 C_low, I_low = breakpoints[i]
+                 C_high, I_high = breakpoints[i+1]
+                 if C_low <= Cp <= C_high:
+                     return ((I_high - I_low) / (C_high - C_low)) * (Cp - C_low) + I_low
+             
+             # Extrapolate
+             C_last, I_last = breakpoints[-1]
+             if Cp > C_last:
+                 C_prev, I_prev = breakpoints[-2]
+                 slope = (I_last - I_prev) / (C_last - C_prev)
+                 val = slope * (Cp - C_last) + I_last
+                 return min(val, 500) # Cap at 500
+             return 0
+
+        # Breakpoints (India AQI Standards CPCB)
+        # Detailed ref: https://app.cpcbccr.com/ccr_docs/FINAL-REPORT_AQI_2015.pdf
+        no2_scale = [(0,0), (40,50), (80,100), (180,200), (280,300), (400,400), (500, 500)]
+        so2_scale = [(0,0), (40,50), (80,100), (380,200), (800,300), (1600,400)]
+        co_scale  = [(0,0), (1000,50), (2000,100), (10000,200), (17000,300), (34000,400)] 
+        o3_scale  = [(0,0), (50,50), (100,100), (168,200), (208,300), (748,400)]
+        # PM2.5 (24hr avg)
+        pm25_scale = [(0,0), (30,50), (60,100), (90,200), (120,300), (250,400), (380,500)]
+        # PM10 (24hr avg)
+        pm10_scale = [(0,0), (50,50), (100,100), (250,200), (350,300), (430,400), (500,500)]
+
+        aqi_no2 = calc_sub_aqi(no2, no2_scale)
+        aqi_so2 = calc_sub_aqi(so2, so2_scale)
+        aqi_co  = calc_sub_aqi(co, co_scale)
+        aqi_o3  = calc_sub_aqi(o3, o3_scale)
+        
+        satellite_aqi = max(aqi_no2, aqi_so2, aqi_co, aqi_o3)
+        
+        # --- OWM Ground Truth Correction ---
+        try:
+            api_key = os.getenv('OPENWEATHER_API_KEY') or os.getenv('OPEN_WEATHER_MAP_API')
+            if api_key:
+                aqi_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={api_key}"
+                resp = requests.get(aqi_url, timeout=2)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    components = data['list'][0]['components']
+                    
+                    # OWM returns ug/m3 directly for all components
+                    owm_no2 = components.get('no2', 0)
+                    owm_so2 = components.get('so2', 0)
+                    owm_co  = components.get('co', 0)
+                    owm_o3  = components.get('o3', 0)
+                    owm_pm25 = components.get('pm2_5', 0)
+                    owm_pm10 = components.get('pm10', 0)
+                    
+                    owm_aqi_no2 = calc_sub_aqi(owm_no2, no2_scale)
+                    owm_aqi_so2 = calc_sub_aqi(owm_so2, so2_scale)
+                    owm_aqi_co  = calc_sub_aqi(owm_co, co_scale)
+                    owm_aqi_o3  = calc_sub_aqi(owm_o3, o3_scale)
+                    owm_aqi_pm25 = calc_sub_aqi(owm_pm25, pm25_scale)
+                    owm_aqi_pm10 = calc_sub_aqi(owm_pm10, pm10_scale)
+                    
+                    # Explicitly check PM2.5 dominance
+                    owm_rigorous_aqi = max(owm_aqi_no2, owm_aqi_so2, owm_aqi_co, owm_aqi_o3, owm_aqi_pm25, owm_aqi_pm10)
+                    
+                    # Return WITHOUT cap to allow Severe+ (600, 700 etc)
+                    return int(owm_rigorous_aqi)
+                    
+        except Exception as e:
+            print(f"OWM Fetch Error: {e}")
+            
+        return int(satellite_aqi)
     except Exception as e:
         print(f"Error fetching stats for {city_name}: {e}")
         return 0
@@ -279,14 +344,27 @@ def dashboard():
         {'name': 'Delhi', 'lat': 28.6139, 'lon': 77.2090}
     ]
     
+    def calculate_cigarettes(aqi):
+        """Calculate cigarette equivalent based on AQI -> PM2.5 mapping"""
+        pm25_equiv = 0
+        if aqi <= 50: pm25_equiv = aqi * (30/50)
+        elif aqi <= 100: pm25_equiv = 30 + (aqi-50)*(30/50)
+        elif aqi <= 200: pm25_equiv = 60 + (aqi-100)*(60/100)
+        elif aqi <= 300: pm25_equiv = 120 + (aqi-200)*(130/100)
+        elif aqi <= 400: pm25_equiv = 250 + (aqi-300)
+        else: pm25_equiv = 350 + (aqi-400)
+        return pm25_equiv / 22.0
+
     city_data = []
     for city in cities:
-        val = get_city_no2_stats(city['name'], city['lat'], city['lon'])
+        val = get_city_stats_summary(city['name'], city['lat'], city['lon'])
+        cigs = calculate_cigarettes(val)
         city_data.append({
             'name': city['name'],
             'lat': city['lat'],
             'lon': city['lon'],
-            'value': val
+            'value': val, # This is now AQI
+            'cigarettes': cigs
         })
     
     return render_template('dashboard.html', city_data=city_data)

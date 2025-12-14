@@ -113,8 +113,9 @@
 
     <div class="container mx-auto px-4 py-8">
         <!-- Hero Section -->
-        <section class="mb-12">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <section class="mb-12 relative">
+            <canvas id="neuralCanvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-30"></canvas>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
                 <div>
                     <div
                         class="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
@@ -380,55 +381,101 @@
         <section id="progressSection" style="display: none;" class="mb-16 animate-fade-in">
             <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
                 <div class="flex items-center gap-3 mb-6">
-                    <i class="fas fa-spinner fa-spin text-blue-600 text-2xl"></i>
-                    <h3 class="text-xl font-bold text-gray-800">System Operation in Progress</h3>
+                    <div class="relative">
+                        <i class="fas fa-circle-notch fa-spin text-blue-600 text-2xl"></i>
+                        <div class="absolute inset-0 bg-blue-400 blur-lg opacity-30 animate-pulse"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Mission Control Active</h3>
+                        <p class="text-xs text-gray-500 font-mono">ESTABLISHING UPLINK...</p>
+                    </div>
                 </div>
 
-                <div class="flex justify-between mb-8 relative">
-                    <!-- Connecting Line -->
-                    <div class="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -z-10 transform -translate-y-1/2"></div>
+                <div class="flex justify-between mb-12 relative px-4 md:px-12">
+                    <!-- Animated Connection Line -->
+                    <svg class="absolute top-1/2 left-0 w-full h-2 -z-10 transform -translate-y-1/2" overflow="visible">
+                        <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#e5e7eb" stroke-width="4" />
+                        <line id="progressLine" x1="0" y1="50%" x2="0%" y2="50%" stroke="#3b82f6" stroke-width="4"
+                            stroke-linecap="round" class="transition-all duration-1000" />
+                        <!-- Moving Pulse -->
+                        <circle r="4" fill="#60a5fa" class="animate-ping" style="animation-duration: 2s;">
+                            <animateMotion dur="2s" repeatCount="indefinite" path="M 0 50 H 10000" />
+                        </circle>
+                    </svg>
 
-                    <div class="stage bg-white p-2" id="stage1">
+                    <div class="stage relative z-10 bg-white p-2 rounded-xl transition-all duration-300" id="stage1">
                         <div
-                            class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mb-2 mx-auto border-4 border-white shadow-sm">
+                            class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mx-auto border-4 border-white shadow-md transition-all duration-300 stage-icon">
                             <i class="fas fa-satellite"></i>
                         </div>
-                        <span class="text-xs font-medium text-gray-500 block text-center">Acquisition</span>
+                        <span
+                            class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap stage-text">Acquisition</span>
                     </div>
-                    <div class="stage bg-white p-2" id="stage2">
+
+                    <div class="stage relative z-10 bg-white p-2 rounded-xl transition-all duration-300" id="stage2">
                         <div
-                            class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mb-2 mx-auto border-4 border-white shadow-sm">
+                            class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mx-auto border-4 border-white shadow-md transition-all duration-300 stage-icon">
                             <i class="fas fa-brain"></i>
                         </div>
-                        <span class="text-xs font-medium text-gray-500 block text-center">Analysis</span>
+                        <span
+                            class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap stage-text">AI
+                            Analysis</span>
                     </div>
-                    <div class="stage bg-white p-2" id="stage3">
+
+                    <div class="stage relative z-10 bg-white p-2 rounded-xl transition-all duration-300" id="stage3">
                         <div
-                            class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mb-2 mx-auto border-4 border-white shadow-sm">
-                            <i class="fas fa-file-pdf"></i>
+                            class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mx-auto border-4 border-white shadow-md transition-all duration-300 stage-icon">
+                            <i class="fas fa-file-contract"></i>
                         </div>
-                        <span class="text-xs font-medium text-gray-500 block text-center">Reporting</span>
+                        <span
+                            class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap stage-text">Reporting</span>
                     </div>
-                    <div class="stage bg-white p-2" id="stage4">
+
+                    <div class="stage relative z-10 bg-white p-2 rounded-xl transition-all duration-300" id="stage4">
                         <div
-                            class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mb-2 mx-auto border-4 border-white shadow-sm">
-                            <i class="fas fa-bell"></i>
+                            class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mx-auto border-4 border-white shadow-md transition-all duration-300 stage-icon">
+                            <i class="fas fa-tower-broadcast"></i>
                         </div>
-                        <span class="text-xs font-medium text-gray-500 block text-center">Alerts</span>
+                        <span
+                            class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap stage-text">Alerts</span>
                     </div>
                 </div>
 
-                <!-- Live Logs Section -->
-                <div
-                    class="bg-black rounded-lg p-4 font-mono text-sm text-green-400 shadow-inner border border-gray-800">
-                    <div class="flex justify-between items-center border-b border-gray-800 pb-2 mb-2">
-                        <span class="font-bold text-white"><i class="fas fa-terminal mr-2"></i>Live System Logs</span>
-                        <span id="countdownTimer" class="text-yellow-500"><i class="fas fa-clock mr-1"></i> 90s</span>
+                <!-- Live Terminal Section -->
+                <div class="bg-[#0c0c0c] rounded-lg border border-gray-800 shadow-2xl overflow-hidden relative group">
+                    <!-- Terminal Header -->
+                    <div class="bg-[#1a1a1a] px-4 py-2 flex justify-between items-center border-b border-gray-800">
+                        <div class="flex items-center gap-2">
+                            <div class="flex gap-1.5">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            </div>
+                            <span class="ml-3 font-mono text-xs text-gray-400">root@sentinel-5p:~#
+                                ./monitor_sequence.sh</span>
+                        </div>
+                        <span id="countdownTimer"
+                            class="font-mono text-xs font-bold text-green-500 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> T-MINUS 90s
+                        </span>
                     </div>
-                    <div id="liveLogs"
-                        class="h-48 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-                        <div class="log-entry opacity-50"><span class="text-gray-500">--:--:--</span> <span
-                                class="text-gray-300">Waiting for system initialization...</span></div>
+
+                    <!-- Terminal Content -->
+                    <div class="relative h-64 p-4 font-mono text-xs md:text-sm overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent custom-terminal"
+                        id="terminalWindow">
+                        <div id="liveLogs" class="space-y-1 pb-4">
+                            <!-- Logs will be injected here -->
+                            <div class="flex gap-2 text-gray-500 opacity-50">
+                                <span>[SYSTEM]</span>
+                                <span>Boot sequence initiated...</span>
+                            </div>
+                        </div>
+
+                        <!-- CRT/Scanline Effects -->
+                        <div class="absolute inset-0 pointer-events-none scanline opacity-10"></div>
+                        <div
+                            class="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-green-900/5 to-transparent">
+                        </div>
                     </div>
                 </div>
             </div>

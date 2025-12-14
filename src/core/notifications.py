@@ -85,124 +85,167 @@ class NotificationService:
     def send_air_quality_alert(
         self,
         city: str,
-        no2_level: float,
+        no2_level: float, # Metric (unused in display)
         category: str,
+        cigarettes: float = 0.0,
         date: str = None
     ) -> bool:
         """
-        Send air quality alert
-        
-        Args:
-            city: City name
-            no2_level: NO2 level in µg/m³
-            category: Air quality category
-            date: Date of measurement
-            
-        Returns:
-            bool: True if sent successfully
+        Send air quality alert via Email (HTML formatted)
         """
         if date is None:
-            date = datetime.now().strftime('%Y-%m-%d')
+            date = datetime.now().strftime('%B %d, %Y')
         
-        # Determine priority based on category
-        priority_map = {
-            "Good": -1,
-            "Moderate": 0,
-            "Poor": 0,
-            "Very Poor": 1,
-            "Severe": 2
+        # Color mapping
+        color_map = {
+            "Good": "#4CAF50", # Green
+            "Moderate": "#FFC107", # Amber
+            "Poor": "#FF9800", # Orange
+            "Very Poor": "#F44336", # Red
+            "Severe": "#B71C1C" # Dark Red
         }
-        priority = priority_map.get(category, 0)
+        bg_color = color_map.get(category, "#607D8B")
         
-        # Determine sound based on severity
-        sound_map = {
-            "Good": "none",
-            "Moderate": "pushover",
-            "Poor": "persistent",
-            "Very Poor": "persistent",
-            "Severe": "siren"
+        # Suggestions Map
+        # Suggestions Map (Expanded for Self-Awareness & Health)
+        suggestions = {
+            "Good": [
+                "✅ Perfect time for outdoor cardio or marathons.",
+                "🏠 VENTILATE: Open all windows to flush out indoor CO2.",
+                "👶 Ideal for infants and elderly to soak in sun.",
+                "🧘‍♀️ Practice deep breathing exercises outdoors.",
+                "⚡ Maximize solar energy usage if applicable."
+            ],
+            "Moderate": [
+                "⚠️ Sensitive groups (asthma/heart conditions) should carry inhalers.",
+                "🚘 Close car windows while driving in traffic.",
+                "🏃‍♂️ Reduce intensity of outdoor exercise (jog instead of sprint).",
+                "🥛 Stay hydrated to keep airways moist.",
+                "🔄 Recirculate indoor air during peak traffic hours."
+            ],
+            "Poor": [
+                "🚫 CUT OUTDOOR EXERCISE: Switch to indoor gym/yoga.",
+                "😷 COMMUTING: Wear an N95 mask if walking/biking.",
+                "🧒 CHILDREN: Limit playground time to <30 mins.",
+                "🥗 DIET: Increase intake of antioxidants (Vitamin C/E).",
+                "🌬️ PURIFIERS: Run HEPA filters in bedrooms at night.",
+                "🧂 STEAM INHALATION: Consider before sleep to clear airways."
+            ],
+            "Very Poor": [
+                "🚨 AVOID OUTDOORS: Walk only if necessary.",
+                "😷 MANDATORY N95/N99 MASK: Cloth masks are ineffective.",
+                "🏢 WORK FROM HOME: If employer permits.",
+                "🚿 Wash face/hands immediately after returning indoors.",
+                "🥘 COOKING: Use exhaust fans; avoid frying to reduce indoor PM2.5.",
+                "🌱 INDOOR PLANTS: Snake Plant/Areca Palm can help slightly."
+            ],
+            "Severe": [
+                "🆘 HEALTH EMERGENCY: Breathlessness possible even in healthy adults.",
+                "🛑 SEAL WINDOWS: Use wet towels in door gaps if drafts enter.",
+                "💨 DO NOT EXERCISE: Even indoors, keep activity low.",
+                "💊 ASTHMATICS: Keep relief medication immediately accessible.",
+                "🩺 CHECK OXYGEN: Monitor SpO2 levels if feeling dizzy.",
+                "🌫️ AIR PURIFIER: Run on 'Turbo' mode 24/7."
+            ]
         }
-        sound = sound_map.get(category, "pushover")
         
-        # Create message
-        emoji_map = {
-            "Good": "🟢",
-            "Moderate": "🟡",
-            "Poor": "🟠",
-            "Very Poor": "🔴",
-            "Severe": "🚨"
-        }
-        emoji = emoji_map.get(category, "⚠️")
+        advice_list = suggestions.get(category, ["Monitor local health advisories."])
+        advice_html = "".join([f"<li>{item}</li>" for item in advice_list])
         
-        message = f"""{emoji} Air Quality Alert for {city}
-
-NO₂ Level: {no2_level:.1f} µg/m³
-Category: {category}
-Date: {date}
-
-Health Advisory:
-"""
+        # HTML Email Body
+        html_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+                <div style="background-color: {bg_color}; color: white; padding: 20px; text-align: center;">
+                    <h1 style="margin: 0; font-size: 24px;">Air Quality Alert: {city}</h1>
+                    <p style="margin: 5px 0 0 0; font-size: 18px;">Status: <strong>{category.upper()}</strong></p>
+                </div>
+                
+                <div style="padding: 20px;">
+                    <p style="font-size: 16px;">
+                        The air quality in <strong>{city}</strong> is currently categorized as <strong style="color: {bg_color};">{category}</strong>.
+                    </p>
+                    
+                    <div style="background-color: #f9f9f9; padding: 15px; border-left: 5px solid {bg_color}; margin: 20px 0;">
+                        <h3 style="margin-top: 0; color: #333;">Health Recommendations:</h3>
+                        <ul style="margin-bottom: 0; padding-left: 20px;">
+                            {advice_html}
+                        </ul>
+                    </div>
+                    
+                    <p style="font-size: 14px; color: #666; margin-top: 30px; text-align: center;">
+                        Generated by National Air Quality Monitoring Bureau | {date}
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
         
-        if category == "Good":
-            message += "✅ Air quality is good. Safe for outdoor activities."
-        elif category == "Moderate":
-            message += "⚠️ Sensitive individuals should limit prolonged outdoor exertion."
-        elif category == "Poor":
-            message += "🚫 Limit outdoor activities. Children and elderly should stay indoors."
-        elif category == "Very Poor":
-            message += "🚨 Avoid outdoor activities. Use air purifiers indoors."
-        else:  # Severe
-            message += "🆘 EMERGENCY: Stay indoors. Close all windows. Use N95 masks if you must go out."
+        plain_body = f"Air Quality Alert: {city}\nStatus: {category}\n\nRecommendations:\n" + "\n".join([f"- {item}" for item in advice_list])
         
-        title = f"{emoji} {city}: {category} Air Quality"
+        subject = f"Air Quality Alert: {category} in {city}"
         
-        return self.send_pushover(message, title, priority, sound)
+        # Only send Email, ignore Pushover
+        print(f"📧 Sending formatted email alert for {city}...")
+        return self.send_email(subject, plain_body, html_body)
     
     def send_daily_summary(
         self,
         cities_data: Dict[str, Dict[str, Any]]
     ) -> bool:
         """
-        Send daily summary for multiple cities
-        
-        Args:
-            cities_data: Dict with city names as keys and data as values
-                        Each value should have: no2_level, category
-                        
-        Returns:
-            bool: True if sent successfully
+        Send daily summary via Email (HTML formatted)
         """
-        message = "📊 Daily Air Quality Summary\n\n"
-        
+        # Build HTML Rows
+        rows = ""
         for city, data in cities_data.items():
-            no2 = data.get('no2_level', 0)
             category = data.get('category', 'Unknown')
-            emoji_map = {
-                "Good": "🟢",
-                "Moderate": "🟡",
-                "Poor": "🟠",
-                "Very Poor": "🔴",
-                "Severe": "🚨"
+            # Color mapping
+            color_map = {
+                "Good": "#4CAF50", "Moderate": "#FFC107", "Poor": "#FF9800",
+                "Very Poor": "#F44336", "Severe": "#B71C1C"
             }
-            emoji = emoji_map.get(category, "⚠️")
-            message += f"{emoji} {city}: {no2:.1f} µg/m³ ({category})\n"
+            color = color_map.get(category, "grey")
+            
+            rows += f"""
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd;"><strong>{city}</strong></td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd; color: {color}; font-weight: bold;">{category}</td>
+            </tr>
+            """
+            
+        date_str = datetime.now().strftime('%B %d, %Y')
         
-        # Add summary statistics
-        total_cities = len(cities_data)
-        good_cities = sum(1 for d in cities_data.values() if d.get('category') == 'Good')
-        severe_cities = sum(1 for d in cities_data.values() if d.get('category') in ['Very Poor', 'Severe'])
+        # HTML Body
+        html_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px;">
+                <div style="background-color: #1a237e; color: white; padding: 20px; text-align: center;">
+                    <h2 style="margin: 0;">Daily Air Quality Summary</h2>
+                    <p style="margin: 5px 0 0 0;">{date_str}</p>
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="padding: 12px; text-align: left;">City</th>
+                        <th style="padding: 12px; text-align: left;">Status</th>
+                    </tr>
+                    {rows}
+                </table>
+                <p style="text-align: center; color: #666; font-size: 12px; padding: 20px;">
+                    National Air Quality Monitoring Bureau
+                </p>
+            </div>
+        </body>
+        </html>
+        """
         
-        message += f"\n📈 Summary:\n"
-        message += f"Total Cities: {total_cities}\n"
-        message += f"Good Air Quality: {good_cities}\n"
-        message += f"Needs Attention: {severe_cities}\n"
+        plain_body = "Daily Summary:\n" + "\n".join([f"{c}: {d.get('category')}" for c, d in cities_data.items()])
         
-        return self.send_pushover(
-            message,
-            title="Daily Air Quality Summary",
-            priority=0,
-            sound="pushover"
-        )
+        print(f"📧 Sending daily summary email for {len(cities_data)} cities...")
+        return self.send_email(f"Daily Air Quality Summary - {date_str}", plain_body, html_body)
     
     def send_email(
         self,
@@ -287,6 +330,7 @@ Health Advisory:
         city: str,
         no2_level: float,
         category: str,
+        cigarettes: float = 0.0,
         date: str = None
     ) -> bool:
         """
@@ -294,8 +338,9 @@ Health Advisory:
         
         Args:
             city: City name
-            no2_level: NO2 level in µg/m³
+            no2_level: AQI or Main Metric
             category: Air quality category
+            cigarettes: Cigarette equivalent
             date: Date of measurement
             
         Returns:
@@ -341,8 +386,9 @@ Health Advisory:
         
         body = f"""Air Quality Alert for {city}
 
-NO₂ Level: {no2_level:.1f} µg/m³
+AQI: {int(no2_level)}
 Category: {category}
+Cigarette Equivalent: ~{cigarettes:.1f} cigarettes/day
 Date: {date}
 
 Health Advisory:
@@ -380,8 +426,12 @@ This is an automated alert from the Agentic Air Quality Monitoring System.
         </div>
         <div class="content">
             <div class="metric">
-                <div class="metric-label">NO₂ Level</div>
-                <div class="metric-value">{no2_level:.1f} µg/m³</div>
+                <div class="metric-label">Air Quality Index (AQI)</div>
+                <div class="metric-value">{int(no2_level)}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Cigarette Equivalent</div>
+                <div class="metric-value">~{cigarettes:.1f} / day</div>
             </div>
             <div class="metric">
                 <div class="metric-label">Air Quality Category</div>
@@ -411,6 +461,7 @@ This is an automated alert from the Agentic Air Quality Monitoring System.
         city: str,
         no2_level: float,
         category: str,
+        cigarettes: float = 0.0,
         date: str = None,
         send_pushover: bool = True,
         send_email: bool = True
@@ -432,10 +483,10 @@ This is an automated alert from the Agentic Air Quality Monitoring System.
         results = {}
         
         if send_pushover:
-            results['pushover'] = self.send_air_quality_alert(city, no2_level, category, date)
+            results['pushover'] = self.send_air_quality_alert(city, no2_level, category, cigarettes, date)
         
         if send_email:
-            results['email'] = self.send_air_quality_email(city, no2_level, category, date)
+            results['email'] = self.send_air_quality_email(city, no2_level, category, cigarettes, date)
         
         return results
     

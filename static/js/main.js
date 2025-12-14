@@ -1,237 +1,296 @@
 // Enhanced JavaScript for Agentic Air Quality Monitor
 
-// Set today's date as default
 document.addEventListener('DOMContentLoaded', () => {
+    initParticles();
+    initDateInputs();
+    initHoverEffects();
+});
+
+// --- 1. Neural Network Particle System ---
+function initParticles() {
+    const canvas = document.getElementById('neuralCanvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+    const particleCount = 60;
+    const connectionDistance = 150;
+
+    // Resize handler
+    function resize() {
+        width = canvas.width = canvas.parentElement.offsetWidth;
+        height = canvas.height = canvas.parentElement.offsetHeight;
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = (Math.random() - 0.5) * 0.5;
+            this.size = Math.random() * 2 + 1;
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+
+            if (this.x < 0 || this.x > width) this.vx *= -1;
+            if (this.y < 0 || this.y > height) this.vy *= -1;
+        }
+
+        draw() {
+            ctx.fillStyle = '#3b82f6'; // Blue-500
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // Init particles
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw connections
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.15)'; // Blue with low opacity
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < particles.length; i++) {
+            let p1 = particles[i];
+            p1.update();
+            p1.draw();
+
+            for (let j = i + 1; j < particles.length; j++) {
+                let p2 = particles[j];
+                const dx = p1.x - p2.x;
+                const dy = p1.y - p2.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < connectionDistance) {
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+// --- 2. Enhanced Agent Form Logic ---
+function initDateInputs() {
     const dateInput = document.getElementById('date');
     if (dateInput) {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
 
-    // Update range value display
     const rangeInput = document.getElementById('dateRange');
     const rangeValue = document.getElementById('rangeValue');
-
     if (rangeInput && rangeValue) {
         rangeInput.addEventListener('input', (e) => {
-            const days = e.target.value;
-            rangeValue.textContent = days == 1 ? '1 day' : `${days} days`;
+            rangeValue.textContent = e.target.value + (e.target.value == 1 ? ' day' : ' days');
         });
     }
 
-    // Add hover effects to agent cards
-    const agentCards = document.querySelectorAll('.agent-card');
-    agentCards.forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-10px) scale(1.02)';
-        });
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0) scale(1)';
-        });
-    });
-});
-
-// Handle form submission
-const agentForm = document.getElementById('agentForm');
-if (agentForm) {
-    agentForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        // Get form data
-        const formData = {
-            city: document.getElementById('city').value,
-            date: document.getElementById('date').value,
-            date_range: document.getElementById('dateRange').value,
-            send_pushover: document.querySelector('input[name="send_pushover"]').checked,
-            send_email: document.querySelector('input[name="send_email"]').checked,
-            generate_reports: document.querySelector('input[name="generate_reports"]').checked
-        };
-
-        // Disable button
-        const launchBtn = document.getElementById('launchBtn');
-        launchBtn.disabled = true;
-        launchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Launching...';
-
-        // Show progress section
-        const progressSection = document.getElementById('progressSection');
-        progressSection.style.display = 'block';
-        progressSection.scrollIntoView({ behavior: 'smooth' });
-
-        try {
-            // Start agents
-            const response = await fetch('/run-agents', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            const data = await response.json();
-            const jobId = data.job_id;
-
-            // Poll for status
-            pollStatus(jobId);
-
-        } catch (error) {
-            console.error('Error:', error);
-            showError('Failed to start agents. Please try again.');
-            launchBtn.disabled = false;
-            launchBtn.innerHTML = '<i class="fas fa-rocket"></i> Launch Agents';
-        }
-    });
+    // Form Submission
+    const agentForm = document.getElementById('agentForm');
+    if (agentForm) {
+        agentForm.addEventListener('submit', handleLaunch);
+    }
 }
 
-// Poll job status with stage animations
-function pollStatus(jobId) {
-    const progressFill = document.getElementById('progressFill');
-    const progressText = document.getElementById('progressText');
-    let progress = 0;
+async function handleLaunch(e) {
+    e.preventDefault();
+
+    const launchBtn = document.getElementById('launchBtn');
+    launchBtn.disabled = true;
+    launchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing System...';
+    launchBtn.classList.remove('bg-gradient-to-r');
+    launchBtn.classList.add('bg-gray-600');
+
+    document.getElementById('progressSection').style.display = 'block';
+    document.getElementById('progressSection').scrollIntoView({ behavior: 'smooth' });
+
+    // Reset logs
+    document.getElementById('liveLogs').innerHTML = '';
+
+    const formData = {
+        city: document.getElementById('city').value,
+        date: document.getElementById('date').value,
+        date_range: document.getElementById('dateRange').value,
+        send_pushover: document.querySelector('input[name="send_pushover"]').checked,
+        send_email: document.querySelector('input[name="send_email"]').checked,
+        generate_reports: document.querySelector('input[name="generate_reports"]').checked
+    };
+
+    try {
+        const response = await fetch('/run-agents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        const data = await response.json();
+
+        startMissionControl(data.job_id);
+
+    } catch (error) {
+        console.error(error);
+        logToTerminal("[CRITICAL ERROR] Uplink failed. Connection refused.", "error");
+        launchBtn.disabled = false;
+        launchBtn.innerHTML = 'Retry Launch';
+    }
+}
+
+// --- 3. Mission Control Logic ---
+function startMissionControl(jobId) {
+    let logHistory = new Set();
     let currentStage = 0;
 
+    // Enhanced Stage Logic
     const stages = [
-        { id: 'stage1', text: '<i class="fas fa-satellite fa-spin"></i> Fetching satellite data...', progress: 25 },
-        { id: 'stage2', text: '<i class="fas fa-microscope fa-spin"></i> Analyzing air quality...', progress: 50 },
-        { id: 'stage3', text: '<i class="fas fa-file-pdf fa-spin"></i> Generating reports...', progress: 75 },
-        { id: 'stage4', text: '<i class="fas fa-bell fa-spin"></i> Sending notifications...', progress: 90 }
+        { id: 'stage1', active: true, label: "Acquisition" },
+        { id: 'stage2', active: false, label: "Analysis" },
+        { id: 'stage3', active: false, label: "Reporting" },
+        { id: 'stage4', active: false, label: "Alerts" }
     ];
 
-    // Countdown Timer Logic
+    // Countdown
     let timeLeft = 90;
-    const timerElement = document.getElementById('countdownTimer');
-
+    const timerEl = document.getElementById('countdownTimer');
     const timerInterval = setInterval(() => {
         timeLeft--;
-        if (timerElement) {
-            timerElement.innerHTML = `<i class="fas fa-clock"></i> ${timeLeft}s`;
-            if (timeLeft <= 10) {
-                timerElement.style.color = '#ef4444'; // Red warning
-            }
-        }
-
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            clearInterval(interval);
-            // Force redirect
-            window.location.href = `/results/${jobId}`;
-        }
+        if (timerEl) timerEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> T-MINUS ${timeLeft}s`;
+        if (timeLeft <= 0) clearInterval(timerInterval);
     }, 1000);
 
-    const interval = setInterval(async () => {
+    // Status Polling
+    const pollInterval = setInterval(async () => {
         try {
-            const response = await fetch(`/api/status/${jobId}`);
-            const status = await response.json();
+            const res = await fetch(`/api/status/${jobId}`);
+            const status = await res.json();
 
-            // Update stage
-            // Update stage (only if not at the last stage)
-            if (currentStage < stages.length - 1) {
-                const stage = stages[currentStage];
-                document.getElementById(stage.id).classList.add('active');
-                progressText.innerHTML = stage.text;
-                progress = stage.progress;
-                progressFill.style.width = `${progress}%`;
-                currentStage++;
-            } else {
-                // At last stage, just wait
-                const stage = stages[stages.length - 1];
-                document.getElementById(stage.id).classList.add('active');
-                progressText.innerHTML = stage.text;
-                progress = stage.progress;
-                progressFill.style.width = `${progress}%`;
-            }
-
-            // Update progress text if available
-            if (status.progress) {
-                progressText.innerHTML = `<i class="fas fa-cog fa-spin"></i> ${status.progress}`;
-            }
-
-            // Update Live Logs
-            const logsContainer = document.getElementById('liveLogs');
-            if (status.logs && status.logs.length > 0) {
-                // Clear existing logs to avoid duplicates (or append smartly)
-                // For simplicity, we'll rebuild if the count changes, or just append new ones
-                // Better approach: just replace content if it's not too large, or append
-
-                // Simple approach: Rebuild logs from status.logs
-                logsContainer.innerHTML = '';
+            // 1. Process Logs (Streaming Effect)
+            if (status.logs) {
                 status.logs.forEach(log => {
-                    const logEntry = document.createElement('div');
-                    logEntry.className = 'log-entry';
-                    // Parse timestamp if available or use current time
-                    const time = new Date().toLocaleTimeString();
-                    logEntry.innerHTML = `<span class="log-time">${time}</span> <span class="log-msg">${log}</span>`;
-                    logsContainer.appendChild(logEntry);
+                    if (!logHistory.has(log)) {
+                        logHistory.add(log);
+                        typeLog(log); // Typewriter effect
+                    }
                 });
-
-                // Auto-scroll to bottom
-                logsContainer.parentElement.scrollTop = logsContainer.parentElement.scrollHeight;
             }
 
-            // Check if complete
+            // 2. Update Stages based on log keywords (Simulated intelligence)
+            if (status.logs) {
+                const recentLogs = status.logs.slice(-3).join(" ").toLowerCase();
+                if (recentLogs.includes("analysis") || recentLogs.includes("analyzing")) setStage(2);
+                if (recentLogs.includes("report") || recentLogs.includes("pdf")) setStage(3);
+                if (recentLogs.includes("alert") || recentLogs.includes("email")) setStage(4);
+            }
+
+            // 3. Completion
             if (status.status === 'complete') {
-                clearInterval(interval);
-                clearInterval(timerInterval); // Stop countdown
+                clearInterval(pollInterval);
+                clearInterval(timerInterval);
+                setStage(4);
+                // Fill progress line
+                document.getElementById('progressLine').setAttribute('x2', '100%');
 
-                // Complete all stages
-                stages.forEach(stage => {
-                    document.getElementById(stage.id).classList.add('active');
-                });
-
-                progressFill.style.width = '100%';
-                progressText.innerHTML = '<i class="fas fa-check-circle"></i> ✅ Complete! Redirecting...';
-
-                // Add success animation
-                progressFill.style.boxShadow = '0 0 30px rgba(16, 185, 129, 0.8)';
-
-                setTimeout(() => {
-                    window.location.href = `/results/${jobId}`;
-                }, 1500);
-            } else if (status.status === 'error') {
-                clearInterval(interval);
-                clearInterval(timerInterval); // Stop countdown
-                progressFill.style.width = '100%';
-                progressFill.style.background = 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
-                progressText.innerHTML = `<i class="fas fa-exclamation-circle"></i> ❌ Error: ${status.error || 'Unknown error'}`;
-
-                const launchBtn = document.getElementById('launchBtn');
-                launchBtn.disabled = false;
-                launchBtn.innerHTML = '<i class="fas fa-rocket"></i> Launch Agents';
+                logToTerminal("[SYSTEM] MISSION ACCOMPLISHED. REDIRECTING...", "success");
+                setTimeout(() => window.location.href = `/results/${jobId}`, 2000);
             }
 
-        } catch (error) {
-            console.error('Status check error:', error);
+        } catch (e) {
+            console.error(e);
         }
-    }, 3000); // Poll every 3 seconds
-}
+    }, 2000);
 
-// Show error message
-function showError(message) {
-    const progressText = document.getElementById('progressText');
-    if (progressText) {
-        progressText.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
-        progressText.style.color = '#ef4444';
-    } else {
-        alert(message);
+    // Stage Visualizer
+    function setStage(stageNum) {
+        if (stageNum <= currentStage) return; // Don't regress
+        currentStage = stageNum;
+
+        // Update Icons
+        for (let i = 1; i <= 4; i++) {
+            const el = document.getElementById(`stage${i}`);
+            const iconBox = el.querySelector('.stage-icon');
+            const text = el.querySelector('.stage-text');
+
+            if (i <= stageNum) {
+                iconBox.classList.remove('bg-gray-100', 'text-gray-400', 'border-white');
+                iconBox.classList.add('bg-blue-600', 'text-white', 'border-blue-200', 'shadow-lg', 'scale-110');
+                text.classList.remove('text-gray-400');
+                text.classList.add('text-blue-600');
+            }
+        }
+
+        // Update Line SVG
+        const pct = (stageNum - 1) * 33;
+        document.getElementById('progressLine').setAttribute('x2', `${pct}%`);
     }
 }
 
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    });
-});
+// --- 4. Terminal Utilities ---
+function typeLog(message) {
+    const logsContainer = document.getElementById('liveLogs');
+    const entry = document.createElement('div');
+    entry.className = "font-mono text-green-400 leading-tight break-words";
 
-// Add parallax effect to particles
-window.addEventListener('scroll', () => {
-    const particles = document.querySelectorAll('.particle');
-    const scrolled = window.pageYOffset;
+    // Parse formatting (Simple regex for color coding)
+    let formattedHTML = formatLogText(message);
 
-    particles.forEach((particle, index) => {
-        const speed = (index + 1) * 0.1;
-        particle.style.transform = `translateY(${scrolled * speed}px)`;
-    });
-});
+    // Typewriter effect logic
+    entry.innerHTML = `<span class="text-xs text-gray-600 mr-2">[${new Date().toLocaleTimeString()}]</span>`;
+    logsContainer.appendChild(entry);
+
+    // We append a span for the content
+    const contentSpan = document.createElement('span');
+    entry.appendChild(contentSpan);
+
+    let charIndex = 0;
+    // Strip HTML tags for typing, then plain inject (Simplified for perf)
+    // Actually, for colored logs + typing, we usually type plain text then colorize.
+    // To keep it robust, let's just fade it in instead of char-by-char to avoid HTML soup issues
+    // OR: Fast type plain text.
+
+    // Quick Fix: Just use fade-in for complex messages, char-type for simple ones?
+    // Let's do a fast "scan" effect.
+    contentSpan.innerHTML = formattedHTML;
+    contentSpan.classList.add('animate-typing'); // CSS based typing or just fade in
+
+    // Auto scroll
+    const terminal = document.getElementById('terminalWindow');
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+function formatLogText(text) {
+    // Colorize keywords
+    return text
+        .replace(/\[INFO\]/g, '<span class="text-blue-400 font-bold">[INFO]</span>')
+        .replace(/\[ERROR\]/g, '<span class="text-red-500 font-bold">[ERROR]</span>')
+        .replace(/\[WARNING\]/g, '<span class="text-yellow-400 font-bold">[WARNING]</span>')
+        .replace(/Agent/g, '<span class="text-purple-400">Agent</span>')
+        .replace(/completed/g, '<span class="text-green-400">completed</span>');
+}
+
+
+function logToTerminal(msg, type = 'info') {
+    const logsContainer = document.getElementById('liveLogs');
+    const div = document.createElement('div');
+    div.className = `font-bold ${type === 'error' ? 'text-red-500' : 'text-green-500'}`;
+    div.innerText = `> ${msg}`;
+    logsContainer.appendChild(div);
+}
+
+function initHoverEffects() {
+    // Any remaining simple hover logic
+}
